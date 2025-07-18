@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo de Trabajo Marketing Digital - Coworking Tepoztlán</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="header-title">🏢 Marketing Digital Coworking Tepoztlán</h1>
+                <p class="header-subtitle">Gestión completa del flujo de trabajo con base de datos local</p>
+                <div class="header-stats">
+                    <span class="stat-item">
+                        <strong id="total-tasks-header">12</strong> Tareas
+                    </span>
+                    <span class="stat-item">
+                        <strong id="completed-tasks-header">0</strong> Completadas
+                    </span>
+                    <span class="stat-item">
+                        <strong id="db-status">✅ Base de datos local activa</strong>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                    <button class="tab-btn" data-tab="tasks">📋 Tareas</button>
+                    <button class="tab-btn" data-tab="collaborators">👥 Colaboradores</button>
+                    <button class="tab-btn" data-tab="configuration">⚙️ Configuración</button>
+                    <button class="tab-btn" data-tab="data">💾 Datos</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content active">
+                    <div class="dashboard-grid">
+                        <div class="metrics-row">
+                            <div class="metric-card">
+                                <h3>Total de Tareas</h3>
+                                <div class="metric-value" id="total-tasks">12</div>
+                            </div>
+                            <div class="metric-card">
+                                <h3>Completadas</h3>
+                                <div class="metric-value" id="completed-tasks">0</div>
+                            </div>
+                            <div class="metric-card">
+                                <h3>En Proceso</h3>
+                                <div class="metric-value" id="in-progress-tasks">0</div>
+                            </div>
+                            <div class="metric-card">
+                                <h3>Pendientes</h3>
+                                <div class="metric-value" id="pending-tasks">12</div>
+                            </div>
+                        </div>
+
+                        <div class="charts-row">
+                            <div class="chart-container">
+                                <h3>Progreso de Tareas</h3>
+                                <div class="chart-wrapper">
+                                    <canvas id="progress-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <h3>Aplicaciones Recomendadas</h3>
+                                <div class="chart-wrapper">
+                                    <canvas id="apps-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-section">
+                            <h3>Timeline de Actividades</h3>
+                            <div class="timeline-container" id="timeline-container">
+                                <div class="timeline-item">
+                                    <div class="timeline-date">Hoy</div>
+                                    <div class="timeline-content">Base de datos local inicializada</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Tab -->
+                <div id="tasks-tab" class="tab-content">
+                    <div class="tasks-header">
+                        <h2>Gestión de Tareas</h2>
+                        <div class="tasks-controls">
+                            <select id="status-filter" class="form-control">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="completada">Completada</option>
+                            </select>
+                            <select id="responsible-filter" class="form-control">
+                                <option value="">Todos los responsables</option>
+                            </select>
+                            <button id="refresh-tasks" class="btn btn--secondary">🔄 Actualizar</button>
+                        </div>
+                    </div>
+                    <div class="tasks-table-container">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tarea</th>
+                                    <th>Responsable</th>
+                                    <th>Aplicación Recomendada</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-tbody">
+                                <!-- Tasks will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Collaborators Tab -->
+                <div id="collaborators-tab" class="tab-content">
+                    <div class="collaborators-section">
+                        <h2>Equipo de Trabajo</h2>
+                        <div class="collaborators-grid" id="collaborators-grid">
+                            <!-- Collaborators will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Tab -->
+                <div id="configuration-tab" class="tab-content">
+                    <div class="config-grid">
+                        <div class="config-section">
+                            <h3>Configuración del Proyecto</h3>
+                            <div class="form-group">
+                                <label class="form-label">Nombre del Proyecto</label>
+                                <input type="text" id="project-name" class="form-control" value="Marketing Digital Coworking Tepoztlán">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Descripción</label>
+                                <textarea id="project-description" class="form-control" rows="3">Campaña de marketing digital para coworking en Tepoztlán</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Presupuesto ($)</label>
+                                <input type="number" id="project-budget" class="form-control" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Duración</label>
+                                <input type="text" id="project-duration" class="form-control" value="30 días">
+                            </div>
+                            <button id="save-config" class="btn btn--primary">Guardar Configuración</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h3>Métricas Objetivo</h3>
+                            <div class="form-group">
+                                <label class="form-label">Meta CPA ($)</label>
+                                <input type="number" id="target-cpa" class="form-control" value="15">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Meta ROAS</label>
+                                <input type="number" step="0.1" id="target-roas" class="form-control" value="1.5">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Conversiones Actuales</label>
+                                <input type="number" id="current-conversions" class="form-control" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sesiones Actuales</label>
+                                <input type="number" id="current-sessions" class="form-control" value="0">
+                            </div>
+                            <button id="update-metrics" class="btn btn--primary">Actualizar Métricas</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Tab -->
+                <div id="data-tab" class="tab-content">
+                    <div class="data-header">
+                        <h2>Gestión de Datos</h2>
+                        <div class="data-controls">
+                            <button id="export-data" class="btn btn--primary">📥 Exportar JSON</button>
+                            <input type="file" id="import-file" accept=".json" style="display: none;">
+                            <button id="import-data" class="btn btn--secondary">📤 Importar JSON</button>
+                            <button id="reset-data" class="btn btn--outline">🔄 Reiniciar Datos</button>
+                        </div>
+                    </div>
+                    <div class="data-grid">
+                        <div class="data-section">
+                            <h3>Tareas (JSON)</h3>
+                            <div class="data-display" id="tasks-data">
+                                <!-- Tasks JSON will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Archivos (JSON)</h3>
+                            <div class="data-display" id="files-data">
+                                <!-- Files JSON will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Comentarios (JSON)</h3>
+                            <div class="data-display" id="comments-data">
+                                <!-- Comments JSON will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="data-section">
+                            <h3>Estadísticas de Base de Datos</h3>
+                            <div class="data-display" id="db-stats">
+                                <div class="db-stat">
+                                    <strong>Estado:</strong> <span id="db-status-text">Activa</span>
+                                </div>
+                                <div class="db-stat">
+                                    <strong>Tareas:</strong> <span id="db-tasks-count">0</span>
+                                </div>
+                                <div class="db-stat">
+                                    <strong>Archivos:</strong> <span id="db-files-count">0</span>
+                                </div>
+                                <div class="db-stat">
+                                    <strong>Comentarios:</strong> <span id="db-comments-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="task-title">Detalles de la Tarea</h3>
+                <button id="close-modal" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="task-detail">
+                    <div class="task-info">
+                        <h4>Descripción</h4>
+                        <p id="task-description"></p>
+                        
+                        <div class="task-meta">
+                            <span><strong>Responsable:</strong> <span id="task-responsible"></span></span>
+                            <span><strong>Entregable:</strong> <span id="task-entregable"></span></span>
+                            <span><strong>Fecha:</strong> <span id="task-date"></span></span>
+                        </div>
+
+                        <div class="suggested-app">
+                            <h4>Aplicación Recomendada</h4>
+                            <div class="app-card">
+                                <div class="app-header">
+                                    <span class="app-icon" id="app-icon">🔧</span>
+                                    <div class="app-name" id="app-name"></div>
+                                </div>
+                                <div class="app-reason" id="app-reason"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-actions">
+                        <div class="status-controls">
+                            <label class="form-label">Estado</label>
+                            <select id="task-status-select" class="form-control">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="completada">Completada</option>
+                            </select>
+                        </div>
+
+                        <div class="file-upload">
+                            <label class="form-label">Subir Archivos</label>
+                            <input type="file" id="task-files" class="form-control" multiple>
+                            <div id="uploaded-files" class="uploaded-files"></div>
+                        </div>
+
+                        <div class="comments-section">
+                            <label class="form-label">Comentarios</label>
+                            <textarea id="task-comments" class="form-control" rows="3" placeholder="Agregar comentario..."></textarea>
+                            <button id="add-comment" class="btn btn--secondary btn--sm">Agregar Comentario</button>
+                            <div id="comments-list" class="comments-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-modal" class="btn btn--outline">Cancelar</button>
+                <button id="save-task" class="btn btn--primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

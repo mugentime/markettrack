@@ -1,1324 +1,989 @@
-// Initialize Dexie Database
-const db = new Dexie('MarketingWorkflowDB');
-
-// Define database schema
-db.version(1).stores({
-  tareas: '++id, nombre, descripcion, estado, responsable, entregable, aplicacion_recomendada, icono_app, descripcion_app, fecha_creacion, fecha_actualizacion',
-  archivos: '++id, tarea_id, nombre, tipo, contenido, fecha_subida',
-  comentarios: '++id, tarea_id, texto, autor, fecha',
-  colaboradores: '++id, nombre, email, rol',
-  configuracion: '++id, clave, valor',
-  actividades: '++id, tipo, descripcion, fecha'
-});
-
-// Global application state
-let appState = {
-  currentTask: null,
-  charts: {
-    progress: null,
-    apps: null
-  },
-  filters: {
-    status: '',
-    responsible: ''
-  }
-};
-
-// Initial data from JSON
-const initialData = {
-  tareas: [
-    {
-      id: 1,
-      nombre: "Kick-off Meeting",
-      descripcion: "Definir objetivos SMART, canales y tono de marca",
-      estado: "completada",
-      responsable: "Project Lead",
-      entregable: "Brief aprobado",
-      aplicacion_recomendada: "Microsoft Teams",
-      icono_app: "💼",
-      descripcion_app: "Meetings con grabación IA y transcripción automática",
-      fecha_creacion: "2025-01-15T09:00:00Z",
-      fecha_actualizacion: "2025-01-16T14:30:00Z"
-    },
-    {
-      id: 2,
-      nombre: "Auditoría Digital",
-      descripcion: "Revisar sitios, redes y CRM para detectar brechas",
-      estado: "en_proceso",
-      responsable: "Estratega Digital",
-      entregable: "Informe de auditoría",
-      aplicacion_recomendada: "SEMrush",
-      icono_app: "🔍",
-      descripcion_app: "Análisis completo de SEO, competencia y oportunidades",
-      fecha_creacion: "2025-01-16T10:00:00Z",
-      fecha_actualizacion: "2025-01-17T09:15:00Z"
-    },
-    {
-      id: 3,
-      nombre: "Buyer Persona con IA",
-      descripcion: "Generar 2 perfiles con IA (dolores, objeciones)",
-      estado: "pendiente",
-      responsable: "Research AI Specialist",
-      entregable: "Perfiles detallados",
-      aplicacion_recomendada: "Perplexity AI",
-      icono_app: "🧠",
-      descripcion_app: "Investigación profunda con IA para crear personas precisas",
-      fecha_creacion: "2025-01-17T11:00:00Z",
-      fecha_actualizacion: "2025-01-17T11:00:00Z"
-    },
-    {
-      id: 4,
-      nombre: "Plan de Contenidos",
-      descripcion: "Calendario 30 días con Copy.ai (blog, reels)",
-      estado: "pendiente",
-      responsable: "Content Manager",
-      entregable: "Calendario de contenido",
-      aplicacion_recomendada: "Later",
-      icono_app: "📅",
-      descripcion_app: "Planificación de contenido con sugerencias de IA",
-      fecha_creacion: "2025-01-18T09:00:00Z",
-      fecha_actualizacion: "2025-01-18T09:00:00Z"
-    },
-    {
-      id: 5,
-      nombre: "Diseño Creativo",
-      descripcion: "3 imágenes + 1 video corto con Canva Magic Media",
-      estado: "pendiente",
-      responsable: "Diseñador",
-      entregable: "Assets creativos",
-      aplicacion_recomendada: "Canva",
-      icono_app: "🎨",
-      descripcion_app: "Creación de contenido visual con Magic Media AI",
-      fecha_creacion: "2025-01-19T10:00:00Z",
-      fecha_actualizacion: "2025-01-19T10:00:00Z"
-    },
-    {
-      id: 6,
-      nombre: "Automatización Lead → CRM",
-      descripcion: "Zapier: Form → HubSpot, mail + Slack alerta",
-      estado: "pendiente",
-      responsable: "Marketing Ops",
-      entregable: "Flujos automatizados",
-      aplicacion_recomendada: "Zapier",
-      icono_app: "⚡",
-      descripcion_app: "Automatización de procesos con integraciones múltiples",
-      fecha_creacion: "2025-01-20T09:00:00Z",
-      fecha_actualizacion: "2025-01-20T09:00:00Z"
-    },
-    {
-      id: 7,
-      nombre: "Secuencia Email Nurture",
-      descripcion: "5 mails personalizados con IA y A/B copy",
-      estado: "pendiente",
-      responsable: "Email Strategist",
-      entregable: "Secuencia de emails",
-      aplicacion_recomendada: "Mailchimp",
-      icono_app: "📧",
-      descripcion_app: "Email marketing con optimización IA y A/B testing",
-      fecha_creacion: "2025-01-21T10:00:00Z",
-      fecha_actualizacion: "2025-01-21T10:00:00Z"
-    },
-    {
-      id: 8,
-      nombre: "Configuración Adext AI",
-      descripcion: "Conectar cuentas, definir audiencias y budget",
-      estado: "pendiente",
-      responsable: "Paid Media Mgr",
-      entregable: "Configuración de cuentas",
-      aplicacion_recomendada: "Meta Ads Manager",
-      icono_app: "🎯",
-      descripcion_app: "Gestión de campañas con Advantage+ y optimización IA",
-      fecha_creacion: "2025-01-22T09:00:00Z",
-      fecha_actualizacion: "2025-01-22T09:00:00Z"
-    },
-    {
-      id: 9,
-      nombre: "Lanzamiento Campañas",
-      descripcion: "Activar FB/IG + Google; etiquetar UTM",
-      estado: "pendiente",
-      responsable: "Paid Media Mgr",
-      entregable: "Campañas activas",
-      aplicacion_recomendada: "Google Ads",
-      icono_app: "🚀",
-      descripcion_app: "Lanzamiento de campañas con Smart Bidding",
-      fecha_creacion: "2025-01-23T10:00:00Z",
-      fecha_actualizacion: "2025-01-23T10:00:00Z"
-    },
-    {
-      id: 10,
-      nombre: "Dashboard Looker",
-      descripcion: "Plantilla KPI con GA4 + Ads + CRM",
-      estado: "pendiente",
-      responsable: "Data Analyst",
-      entregable: "Dashboard de métricas",
-      aplicacion_recomendada: "Looker Studio",
-      icono_app: "📊",
-      descripcion_app: "Dashboards interactivos con datos en tiempo real",
-      fecha_creacion: "2025-01-24T09:00:00Z",
-      fecha_actualizacion: "2025-01-24T09:00:00Z"
-    },
-    {
-      id: 11,
-      nombre: "Revisión Semanal",
-      descripcion: "Stand-ups, revisar métricas y backlog",
-      estado: "pendiente",
-      responsable: "Todo el equipo",
-      entregable: "Notas de reunión",
-      aplicacion_recomendada: "Notion",
-      icono_app: "📝",
-      descripcion_app: "Gestión colaborativa con IA assistant",
-      fecha_creacion: "2025-01-25T10:00:00Z",
-      fecha_actualizacion: "2025-01-25T10:00:00Z"
-    },
-    {
-      id: 12,
-      nombre: "Optimización CPC & Creativo",
-      descripcion: "Pausar anuncios con CTR < 1%, probar nuevas creatividades IA",
-      estado: "pendiente",
-      responsable: "Paid Media Mgr + Diseñador",
-      entregable: "Reporte de optimización",
-      aplicacion_recomendada: "Adext AI",
-      icono_app: "🔧",
-      descripcion_app: "Optimización automática con machine learning",
-      fecha_creacion: "2025-01-26T09:00:00Z",
-      fecha_actualizacion: "2025-01-26T09:00:00Z"
-    }
-  ],
-  colaboradores: [
-    {
-      id: 1,
-      nombre: "Ana García",
-      email: "ana@coworking.com",
-      rol: "Project Lead"
-    },
-    {
-      id: 2,
-      nombre: "Carlos Mendoza",
-      email: "carlos@coworking.com",
-      rol: "Estratega Digital"
-    },
-    {
-      id: 3,
-      nombre: "María López",
-      email: "maria@coworking.com",
-      rol: "Content Manager"
-    },
-    {
-      id: 4,
-      nombre: "Diego Reyes",
-      email: "diego@coworking.com",
-      rol: "Diseñador"
-    },
-    {
-      id: 5,
-      nombre: "Sofia Castillo",
-      email: "sofia@coworking.com",
-      rol: "Paid Media Mgr"
-    },
-    {
-      id: 6,
-      nombre: "Luis Hernández",
-      email: "luis@coworking.com",
-      rol: "Data Analyst"
-    },
-    {
-      id: 7,
-      nombre: "Carmen Torres",
-      email: "carmen@coworking.com",
-      rol: "Email Strategist"
-    },
-    {
-      id: 8,
-      nombre: "Roberto Silva",
-      email: "roberto@coworking.com",
-      rol: "Marketing Ops"
-    },
-    {
-      id: 9,
-      nombre: "Elena Vega",
-      email: "elena@coworking.com",
-      rol: "Research AI Specialist"
-    }
-  ],
-  configuracion: {
-    proyecto: {
-      nombre: "Marketing Digital Coworking Tepoztlán",
-      descripcion: "Campaña de marketing digital para coworking en Tepoztlán",
-      objetivo: "Generar reservas y engagement",
-      presupuesto: 1000,
-      duracion: "30 días",
-      meta_cpa: 15,
-      meta_roas: 1.5
-    },
-    metricas: {
-      conversiones: 0,
-      cpa_actual: 0,
-      roas_actual: 0,
-      engagement: 0,
-      sesiones: 0
-    }
-  }
-};
-
-// Initialize application when DOM is loaded
-document.addEventListener('DOMContentLoaded', async function() {
-  try {
-    await initializeDatabase();
-    await initializeApp();
-    setupEventListeners();
-    await loadDashboard();
-    await loadTasks();
-    await loadCollaborators();
-    await loadConfiguration();
-    await updateDataDisplay();
-    showNotification('✅ Base de datos local inicializada correctamente', 'success');
-  } catch (error) {
-    console.error('Error initializing app:', error);
-    showNotification('❌ Error al inicializar la aplicación', 'error');
-  }
-});
-
-// Initialize database with initial data
-async function initializeDatabase() {
-  try {
-    // Check if database is already populated
-    const taskCount = await db.tareas.count();
-    
-    if (taskCount === 0) {
-      // Populate initial data
-      await db.tareas.bulkAdd(initialData.tareas);
-      await db.colaboradores.bulkAdd(initialData.colaboradores);
-      
-      // Add configuration
-      for (const [key, value] of Object.entries(initialData.configuracion)) {
-        await db.configuracion.add({
-          clave: key,
-          valor: JSON.stringify(value)
-        });
-      }
-      
-      // Add initial activity
-      await db.actividades.add({
-        tipo: 'sistema',
-        descripcion: 'Base de datos inicializada con datos del proyecto',
-        fecha: new Date().toISOString()
-      });
-    }
-  } catch (error) {
-    console.error('Error initializing database:', error);
-    throw error;
-  }
-}
-
-// Initialize application
-async function initializeApp() {
-  try {
-    // Initialize charts
-    initializeCharts();
-    
-    // Set up periodic updates
-    setInterval(async () => {
-      await updateDashboard();
-      await updateDataDisplay();
-    }, 5000);
-    
-  } catch (error) {
-    console.error('Error in app initialization:', error);
-    throw error;
-  }
-}
-
-// Setup event listeners
-function setupEventListeners() {
-  // Tab navigation - Fixed event listener setup
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const tabName = this.dataset.tab;
-      console.log('Tab clicked:', tabName); // Debug log
-      switchTab(tabName);
-    });
-  });
-
-  // Task management
-  const refreshButton = document.getElementById('refresh-tasks');
-  if (refreshButton) {
-    refreshButton.addEventListener('click', loadTasks);
-  }
-
-  const statusFilter = document.getElementById('status-filter');
-  if (statusFilter) {
-    statusFilter.addEventListener('change', filterTasks);
-  }
-
-  const responsibleFilter = document.getElementById('responsible-filter');
-  if (responsibleFilter) {
-    responsibleFilter.addEventListener('change', filterTasks);
-  }
-
-  // Configuration
-  const saveConfigButton = document.getElementById('save-config');
-  if (saveConfigButton) {
-    saveConfigButton.addEventListener('click', saveConfiguration);
-  }
-
-  const updateMetricsButton = document.getElementById('update-metrics');
-  if (updateMetricsButton) {
-    updateMetricsButton.addEventListener('click', updateMetrics);
-  }
-
-  // Data management
-  const exportButton = document.getElementById('export-data');
-  if (exportButton) {
-    exportButton.addEventListener('click', exportData);
-  }
-
-  const importButton = document.getElementById('import-data');
-  if (importButton) {
-    importButton.addEventListener('click', () => {
-      document.getElementById('import-file').click();
-    });
-  }
-
-  const importFile = document.getElementById('import-file');
-  if (importFile) {
-    importFile.addEventListener('change', importData);
-  }
-
-  const resetButton = document.getElementById('reset-data');
-  if (resetButton) {
-    resetButton.addEventListener('click', resetData);
-  }
-
-  // Modal controls
-  const closeModalButton = document.getElementById('close-modal');
-  if (closeModalButton) {
-    closeModalButton.addEventListener('click', closeModal);
-  }
-
-  const cancelModalButton = document.getElementById('cancel-modal');
-  if (cancelModalButton) {
-    cancelModalButton.addEventListener('click', closeModal);
-  }
-
-  const saveTaskButton = document.getElementById('save-task');
-  if (saveTaskButton) {
-    saveTaskButton.addEventListener('click', saveTask);
-  }
-
-  const addCommentButton = document.getElementById('add-comment');
-  if (addCommentButton) {
-    addCommentButton.addEventListener('click', addComment);
-  }
-
-  const taskFilesInput = document.getElementById('task-files');
-  if (taskFilesInput) {
-    taskFilesInput.addEventListener('change', handleFileUpload);
-  }
-
-  // Modal backdrop close
-  const taskModal = document.getElementById('task-modal');
-  if (taskModal) {
-    taskModal.addEventListener('click', (e) => {
-      if (e.target.id === 'task-modal') {
-        closeModal();
-      }
-    });
-  }
-}
-
-// Switch between tabs - Fixed implementation
-function switchTab(tabName) {
-  console.log('Switching to tab:', tabName); // Debug log
-  
-  // Update tab buttons
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add('active');
-  }
-
-  // Update tab content
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.remove('active');
-  });
-  
-  const activeContent = document.getElementById(`${tabName}-tab`);
-  if (activeContent) {
-    activeContent.classList.add('active');
-  }
-
-  // Load specific tab content
-  switch(tabName) {
-    case 'dashboard':
-      loadDashboard();
-      break;
-    case 'tasks':
-      loadTasks();
-      break;
-    case 'collaborators':
-      loadCollaborators();
-      break;
-    case 'configuration':
-      loadConfiguration();
-      break;
-    case 'data':
-      updateDataDisplay();
-      break;
-  }
-}
-
-// Load and update dashboard
-async function loadDashboard() {
-  try {
-    await updateDashboard();
-    await updateTimeline();
-  } catch (error) {
-    console.error('Error loading dashboard:', error);
-  }
-}
-
-// Update dashboard metrics
-async function updateDashboard() {
-  try {
-    const tasks = await db.tareas.toArray();
-    
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.estado === 'completada').length;
-    const inProgressTasks = tasks.filter(task => task.estado === 'en_proceso').length;
-    const pendingTasks = tasks.filter(task => task.estado === 'pendiente').length;
-    
-    // Update metrics
-    const totalTasksEl = document.getElementById('total-tasks');
-    if (totalTasksEl) totalTasksEl.textContent = totalTasks;
-    
-    const completedTasksEl = document.getElementById('completed-tasks');
-    if (completedTasksEl) completedTasksEl.textContent = completedTasks;
-    
-    const inProgressTasksEl = document.getElementById('in-progress-tasks');
-    if (inProgressTasksEl) inProgressTasksEl.textContent = inProgressTasks;
-    
-    const pendingTasksEl = document.getElementById('pending-tasks');
-    if (pendingTasksEl) pendingTasksEl.textContent = pendingTasks;
-    
-    // Update header stats
-    const totalTasksHeaderEl = document.getElementById('total-tasks-header');
-    if (totalTasksHeaderEl) totalTasksHeaderEl.textContent = totalTasks;
-    
-    const completedTasksHeaderEl = document.getElementById('completed-tasks-header');
-    if (completedTasksHeaderEl) completedTasksHeaderEl.textContent = completedTasks;
-    
-    // Update charts
-    updateCharts(tasks);
-  } catch (error) {
-    console.error('Error updating dashboard:', error);
-  }
-}
-
-// Initialize charts
-function initializeCharts() {
-  // Progress Chart
-  const progressCanvas = document.getElementById('progress-chart');
-  if (progressCanvas) {
-    const progressCtx = progressCanvas.getContext('2d');
-    appState.charts.progress = new Chart(progressCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Completadas', 'En Proceso', 'Pendientes'],
-        datasets: [{
-          data: [1, 1, 10],
-          backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C']
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }
-    });
-  }
-
-  // Apps Chart
-  const appsCanvas = document.getElementById('apps-chart');
-  if (appsCanvas) {
-    const appsCtx = appsCanvas.getContext('2d');
-    appState.charts.apps = new Chart(appsCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Microsoft Teams', 'SEMrush', 'Perplexity AI', 'Later', 'Canva', 'Zapier', 'Mailchimp', 'Meta Ads Manager', 'Google Ads', 'Looker Studio', 'Notion', 'Adext AI'],
-        datasets: [{
-          label: 'Tareas por Aplicación',
-          data: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-          backgroundColor: '#1FB8CD'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
-        }
-      }
-    });
-  }
-}
-
-// Update charts with new data
-function updateCharts(tasks) {
-  if (!appState.charts.progress || !appState.charts.apps) return;
-
-  const completedTasks = tasks.filter(task => task.estado === 'completada').length;
-  const inProgressTasks = tasks.filter(task => task.estado === 'en_proceso').length;
-  const pendingTasks = tasks.filter(task => task.estado === 'pendiente').length;
-
-  // Update progress chart
-  if (appState.charts.progress) {
-    appState.charts.progress.data.datasets[0].data = [completedTasks, inProgressTasks, pendingTasks];
-    appState.charts.progress.update();
-  }
-
-  // Update apps chart
-  if (appState.charts.apps) {
-    const appCounts = {};
-    tasks.forEach(task => {
-      appCounts[task.aplicacion_recomendada] = (appCounts[task.aplicacion_recomendada] || 0) + 1;
-    });
-
-    appState.charts.apps.data.labels = Object.keys(appCounts);
-    appState.charts.apps.data.datasets[0].data = Object.values(appCounts);
-    appState.charts.apps.update();
-  }
-}
-
-// Update timeline with recent activities
-async function updateTimeline() {
-  try {
-    const activities = await db.actividades.orderBy('fecha').reverse().limit(5).toArray();
-    const container = document.getElementById('timeline-container');
-    
-    if (container) {
-      container.innerHTML = '';
-      
-      activities.forEach(activity => {
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        item.innerHTML = `
-          <div class="timeline-date">${formatDate(activity.fecha)}</div>
-          <div class="timeline-content">${activity.descripcion}</div>
-        `;
-        container.appendChild(item);
-      });
-    }
-  } catch (error) {
-    console.error('Error updating timeline:', error);
-  }
-}
-
-// Load and render tasks
-async function loadTasks() {
-  try {
-    let tasks = await db.tareas.toArray();
-    
-    // Apply filters
-    if (appState.filters.status) {
-      tasks = tasks.filter(task => task.estado === appState.filters.status);
-    }
-    
-    if (appState.filters.responsible) {
-      tasks = tasks.filter(task => task.responsable === appState.filters.responsible);
-    }
-    
-    renderTasks(tasks);
-    await populateFilters();
-  } catch (error) {
-    console.error('Error loading tasks:', error);
-    showNotification('❌ Error al cargar tareas', 'error');
-  }
-}
-
-// Render tasks table
-function renderTasks(tasks) {
-  const tbody = document.getElementById('tasks-tbody');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  
-  tasks.forEach(task => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${task.id}</td>
-      <td>
-        <strong>${task.nombre}</strong><br>
-        <small>${task.descripcion}</small>
-      </td>
-      <td>${task.responsable}</td>
-      <td>
-        <div class="suggested-app-cell">
-          <div class="app-name">${task.icono_app} ${task.aplicacion_recomendada}</div>
-          <div class="app-reason">${task.descripcion_app}</div>
-        </div>
-      </td>
-      <td><span class="task-status ${task.estado}">${formatStatus(task.estado)}</span></td>
-      <td>${formatDate(task.fecha_creacion)}</td>
-      <td>
-        <div class="task-actions">
-          <button class="btn btn--secondary btn-action" onclick="openTaskModal(${task.id})">✏️ Editar</button>
-          <button class="btn btn--outline btn-action" onclick="changeTaskStatus(${task.id})">🔄 Estado</button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-// Populate filter dropdowns
-async function populateFilters() {
-  try {
-    const tasks = await db.tareas.toArray();
-    
-    // Populate responsible filter
-    const responsibleFilter = document.getElementById('responsible-filter');
-    if (responsibleFilter) {
-      const responsibles = [...new Set(tasks.map(task => task.responsable))];
-      
-      responsibleFilter.innerHTML = '<option value="">Todos los responsables</option>';
-      responsibles.forEach(responsible => {
-        const option = document.createElement('option');
-        option.value = responsible;
-        option.textContent = responsible;
-        responsibleFilter.appendChild(option);
-      });
-    }
-  } catch (error) {
-    console.error('Error populating filters:', error);
-  }
-}
-
-// Filter tasks
-function filterTasks() {
-  const statusFilter = document.getElementById('status-filter');
-  const responsibleFilter = document.getElementById('responsible-filter');
-  
-  if (statusFilter) {
-    appState.filters.status = statusFilter.value;
-  }
-  
-  if (responsibleFilter) {
-    appState.filters.responsible = responsibleFilter.value;
-  }
-  
-  loadTasks();
-}
-
-// Open task modal
-async function openTaskModal(taskId) {
-  try {
-    const task = await db.tareas.get(taskId);
-    if (!task) return;
-    
-    appState.currentTask = task;
-    
-    // Populate modal
-    const taskTitleEl = document.getElementById('task-title');
-    if (taskTitleEl) taskTitleEl.textContent = task.nombre;
-    
-    const taskDescriptionEl = document.getElementById('task-description');
-    if (taskDescriptionEl) taskDescriptionEl.textContent = task.descripcion;
-    
-    const taskResponsibleEl = document.getElementById('task-responsible');
-    if (taskResponsibleEl) taskResponsibleEl.textContent = task.responsable;
-    
-    const taskEntregableEl = document.getElementById('task-entregable');
-    if (taskEntregableEl) taskEntregableEl.textContent = task.entregable;
-    
-    const taskDateEl = document.getElementById('task-date');
-    if (taskDateEl) taskDateEl.textContent = formatDate(task.fecha_creacion);
-    
-    const appIconEl = document.getElementById('app-icon');
-    if (appIconEl) appIconEl.textContent = task.icono_app;
-    
-    const appNameEl = document.getElementById('app-name');
-    if (appNameEl) appNameEl.textContent = task.aplicacion_recomendada;
-    
-    const appReasonEl = document.getElementById('app-reason');
-    if (appReasonEl) appReasonEl.textContent = task.descripcion_app;
-    
-    const taskStatusSelectEl = document.getElementById('task-status-select');
-    if (taskStatusSelectEl) taskStatusSelectEl.value = task.estado;
-    
-    // Load files and comments
-    await loadTaskFiles(taskId);
-    await loadTaskComments(taskId);
-    
-    // Show modal
-    const modal = document.getElementById('task-modal');
-    if (modal) {
-      modal.classList.add('active');
-    }
-  } catch (error) {
-    console.error('Error opening task modal:', error);
-    showNotification('❌ Error al abrir tarea', 'error');
-  }
-}
-
-// Close modal
-function closeModal() {
-  const modal = document.getElementById('task-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
-  appState.currentTask = null;
-}
-
-// Save task changes
-async function saveTask() {
-  if (!appState.currentTask) return;
-  
-  try {
-    const taskStatusSelect = document.getElementById('task-status-select');
-    if (!taskStatusSelect) return;
-    
-    const newStatus = taskStatusSelect.value;
-    const oldStatus = appState.currentTask.estado;
-    
-    // Update task
-    await db.tareas.update(appState.currentTask.id, {
-      estado: newStatus,
-      fecha_actualizacion: new Date().toISOString()
-    });
-    
-    // Add activity if status changed
-    if (newStatus !== oldStatus) {
-      await db.actividades.add({
-        tipo: 'tarea',
-        descripcion: `Tarea "${appState.currentTask.nombre}" cambió de ${formatStatus(oldStatus)} a ${formatStatus(newStatus)}`,
-        fecha: new Date().toISOString()
-      });
-    }
-    
-    // Update UI
-    await loadTasks();
-    await updateDashboard();
-    await updateDataDisplay();
-    closeModal();
-    
-    showNotification('✅ Tarea guardada exitosamente', 'success');
-  } catch (error) {
-    console.error('Error saving task:', error);
-    showNotification('❌ Error al guardar tarea', 'error');
-  }
-}
-
-// Change task status (quick action)
-async function changeTaskStatus(taskId) {
-  try {
-    const task = await db.tareas.get(taskId);
-    if (!task) return;
-    
-    const statuses = ['pendiente', 'en_proceso', 'completada'];
-    const currentIndex = statuses.indexOf(task.estado);
-    const nextIndex = (currentIndex + 1) % statuses.length;
-    const newStatus = statuses[nextIndex];
-    
-    await db.tareas.update(taskId, {
-      estado: newStatus,
-      fecha_actualizacion: new Date().toISOString()
-    });
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'tarea',
-      descripcion: `Tarea "${task.nombre}" cambió de estado a ${formatStatus(newStatus)}`,
-      fecha: new Date().toISOString()
-    });
-    
-    // Update UI
-    await loadTasks();
-    await updateDashboard();
-    
-    showNotification(`✅ Estado cambiado a: ${formatStatus(newStatus)}`, 'success');
-  } catch (error) {
-    console.error('Error changing task status:', error);
-    showNotification('❌ Error al cambiar estado', 'error');
-  }
-}
-
-// Handle file upload
-async function handleFileUpload(event) {
-  if (!appState.currentTask) return;
-  
-  try {
-    const files = Array.from(event.target.files);
-    
-    for (const file of files) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        await db.archivos.add({
-          tarea_id: appState.currentTask.id,
-          nombre: file.name,
-          tipo: file.type,
-          contenido: e.target.result,
-          fecha_subida: new Date().toISOString()
-        });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo de Marketing Digital - Coworking Tepoztlán</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>🏢 Coworking Tepoztlán</h2>
+                <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="progress-overview">
+                    <h3>Progreso General</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="progress-text" id="progress-text">0/12 Completadas</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <button class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Dashboard</span>
+                    </button>
+                    
+                    <div class="nav-section">
+                        <h4>Tareas del Flujo</h4>
+                        <button class="nav-item" data-page="task-1">
+                            <span class="nav-icon">🚀</span>
+                            <span class="nav-text">Kick-off Meeting</span>
+                            <span class="nav-status" id="status-1">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-2">
+                            <span class="nav-icon">🔍</span>
+                            <span class="nav-text">Auditoría Digital</span>
+                            <span class="nav-status" id="status-2">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-3">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Buyer Persona IA</span>
+                            <span class="nav-status" id="status-3">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-4">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Plan de Contenidos</span>
+                            <span class="nav-status" id="status-4">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-5">
+                            <span class="nav-icon">🎨</span>
+                            <span class="nav-text">Diseño Creativo</span>
+                            <span class="nav-status" id="status-5">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-6">
+                            <span class="nav-icon">⚡</span>
+                            <span class="nav-text">Automatización Lead</span>
+                            <span class="nav-status" id="status-6">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-7">
+                            <span class="nav-icon">📧</span>
+                            <span class="nav-text">Email Nurture</span>
+                            <span class="nav-status" id="status-7">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-8">
+                            <span class="nav-icon">🎯</span>
+                            <span class="nav-text">Configuración Adext</span>
+                            <span class="nav-status" id="status-8">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-9">
+                            <span class="nav-icon">📈</span>
+                            <span class="nav-text">Lanzamiento Campañas</span>
+                            <span class="nav-status" id="status-9">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-10">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard Looker</span>
+                            <span class="nav-status" id="status-10">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-11">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Revisión Semanal</span>
+                            <span class="nav-status" id="status-11">⏳</span>
+                        </button>
+                        
+                        <button class="nav-item" data-page="task-12">
+                            <span class="nav-icon">🔧</span>
+                            <span class="nav-text">Optimización CPC</span>
+                            <span class="nav-status" id="status-12">⏳</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
         
-        await loadTaskFiles(appState.currentTask.id);
-      };
-      reader.readAsDataURL(file);
-    }
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'archivo',
-      descripcion: `${files.length} archivo(s) subido(s) a la tarea "${appState.currentTask.nombre}"`,
-      fecha: new Date().toISOString()
-    });
-    
-    showNotification(`✅ ${files.length} archivo(s) subido(s)`, 'success');
-  } catch (error) {
-    console.error('Error uploading files:', error);
-    showNotification('❌ Error al subir archivos', 'error');
-  }
-}
-
-// Load task files
-async function loadTaskFiles(taskId) {
-  try {
-    const files = await db.archivos.where('tarea_id').equals(taskId).toArray();
-    const container = document.getElementById('uploaded-files');
-    
-    if (container) {
-      container.innerHTML = '';
-      
-      files.forEach(file => {
-        const fileDiv = document.createElement('div');
-        fileDiv.className = 'file-item';
-        fileDiv.innerHTML = `
-          <div class="file-name">📎 ${file.nombre}</div>
-          <div class="file-size">${formatDate(file.fecha_subida)}</div>
-        `;
-        container.appendChild(fileDiv);
-      });
-    }
-  } catch (error) {
-    console.error('Error loading task files:', error);
-  }
-}
-
-// Add comment
-async function addComment() {
-  if (!appState.currentTask) return;
-  
-  try {
-    const taskCommentsEl = document.getElementById('task-comments');
-    if (!taskCommentsEl) return;
-    
-    const commentText = taskCommentsEl.value.trim();
-    if (!commentText) return;
-    
-    await db.comentarios.add({
-      tarea_id: appState.currentTask.id,
-      texto: commentText,
-      autor: 'Usuario',
-      fecha: new Date().toISOString()
-    });
-    
-    taskCommentsEl.value = '';
-    await loadTaskComments(appState.currentTask.id);
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'comentario',
-      descripcion: `Nuevo comentario agregado a la tarea "${appState.currentTask.nombre}"`,
-      fecha: new Date().toISOString()
-    });
-    
-    showNotification('✅ Comentario agregado', 'success');
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    showNotification('❌ Error al agregar comentario', 'error');
-  }
-}
-
-// Load task comments
-async function loadTaskComments(taskId) {
-  try {
-    const comments = await db.comentarios.where('tarea_id').equals(taskId).orderBy('fecha').reverse().toArray();
-    const container = document.getElementById('comments-list');
-    
-    if (container) {
-      container.innerHTML = '';
-      
-      comments.forEach(comment => {
-        const commentDiv = document.createElement('div');
-        commentDiv.className = 'comment-item';
-        commentDiv.innerHTML = `
-          <div class="comment-date">${formatDate(comment.fecha)} - ${comment.autor}</div>
-          <div class="comment-text">${comment.texto}</div>
-        `;
-        container.appendChild(commentDiv);
-      });
-    }
-  } catch (error) {
-    console.error('Error loading task comments:', error);
-  }
-}
-
-// Load collaborators
-async function loadCollaborators() {
-  try {
-    const collaborators = await db.colaboradores.toArray();
-    const grid = document.getElementById('collaborators-grid');
-    
-    if (grid) {
-      grid.innerHTML = '';
-      
-      collaborators.forEach(collaborator => {
-        const card = document.createElement('div');
-        card.className = 'collaborator-card';
-        card.innerHTML = `
-          <div class="collaborator-name">${collaborator.nombre}</div>
-          <div class="collaborator-role">${collaborator.rol}</div>
-          <div class="collaborator-email">${collaborator.email}</div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-  } catch (error) {
-    console.error('Error loading collaborators:', error);
-  }
-}
-
-// Load configuration
-async function loadConfiguration() {
-  try {
-    const config = await db.configuracion.toArray();
-    
-    for (const item of config) {
-      const value = JSON.parse(item.valor);
-      
-      if (item.clave === 'proyecto') {
-        const projectNameEl = document.getElementById('project-name');
-        if (projectNameEl) projectNameEl.value = value.nombre || '';
-        
-        const projectDescriptionEl = document.getElementById('project-description');
-        if (projectDescriptionEl) projectDescriptionEl.value = value.descripcion || '';
-        
-        const projectBudgetEl = document.getElementById('project-budget');
-        if (projectBudgetEl) projectBudgetEl.value = value.presupuesto || 0;
-        
-        const projectDurationEl = document.getElementById('project-duration');
-        if (projectDurationEl) projectDurationEl.value = value.duracion || '';
-        
-      } else if (item.clave === 'metricas') {
-        const targetCpaEl = document.getElementById('target-cpa');
-        if (targetCpaEl) targetCpaEl.value = value.meta_cpa || 0;
-        
-        const targetRoasEl = document.getElementById('target-roas');
-        if (targetRoasEl) targetRoasEl.value = value.meta_roas || 0;
-        
-        const currentConversionsEl = document.getElementById('current-conversions');
-        if (currentConversionsEl) currentConversionsEl.value = value.conversiones || 0;
-        
-        const currentSessionsEl = document.getElementById('current-sessions');
-        if (currentSessionsEl) currentSessionsEl.value = value.sesiones || 0;
-      }
-    }
-  } catch (error) {
-    console.error('Error loading configuration:', error);
-  }
-}
-
-// Save configuration
-async function saveConfiguration() {
-  try {
-    const projectNameEl = document.getElementById('project-name');
-    const projectDescriptionEl = document.getElementById('project-description');
-    const projectBudgetEl = document.getElementById('project-budget');
-    const projectDurationEl = document.getElementById('project-duration');
-    
-    const projectConfig = {
-      nombre: projectNameEl ? projectNameEl.value : '',
-      descripcion: projectDescriptionEl ? projectDescriptionEl.value : '',
-      presupuesto: projectBudgetEl ? parseInt(projectBudgetEl.value) : 0,
-      duracion: projectDurationEl ? projectDurationEl.value : ''
-    };
-    
-    await db.configuracion.where('clave').equals('proyecto').modify({
-      valor: JSON.stringify(projectConfig)
-    });
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'configuracion',
-      descripcion: 'Configuración del proyecto actualizada',
-      fecha: new Date().toISOString()
-    });
-    
-    showNotification('✅ Configuración guardada', 'success');
-  } catch (error) {
-    console.error('Error saving configuration:', error);
-    showNotification('❌ Error al guardar configuración', 'error');
-  }
-}
-
-// Update metrics
-async function updateMetrics() {
-  try {
-    const targetCpaEl = document.getElementById('target-cpa');
-    const targetRoasEl = document.getElementById('target-roas');
-    const currentConversionsEl = document.getElementById('current-conversions');
-    const currentSessionsEl = document.getElementById('current-sessions');
-    
-    const metricsConfig = {
-      meta_cpa: targetCpaEl ? parseFloat(targetCpaEl.value) : 0,
-      meta_roas: targetRoasEl ? parseFloat(targetRoasEl.value) : 0,
-      conversiones: currentConversionsEl ? parseInt(currentConversionsEl.value) : 0,
-      sesiones: currentSessionsEl ? parseInt(currentSessionsEl.value) : 0
-    };
-    
-    await db.configuracion.where('clave').equals('metricas').modify({
-      valor: JSON.stringify(metricsConfig)
-    });
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'metricas',
-      descripcion: 'Métricas del proyecto actualizadas',
-      fecha: new Date().toISOString()
-    });
-    
-    showNotification('✅ Métricas actualizadas', 'success');
-  } catch (error) {
-    console.error('Error updating metrics:', error);
-    showNotification('❌ Error al actualizar métricas', 'error');
-  }
-}
-
-// Export data to JSON
-async function exportData() {
-  try {
-    const data = {
-      tareas: await db.tareas.toArray(),
-      archivos: await db.archivos.toArray(),
-      comentarios: await db.comentarios.toArray(),
-      colaboradores: await db.colaboradores.toArray(),
-      configuracion: await db.configuracion.toArray(),
-      actividades: await db.actividades.toArray(),
-      exportDate: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json'
-    });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `marketing-workflow-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    
-    URL.revokeObjectURL(url);
-    
-    // Add activity
-    await db.actividades.add({
-      tipo: 'exportacion',
-      descripcion: 'Datos exportados a JSON',
-      fecha: new Date().toISOString()
-    });
-    
-    showNotification('✅ Datos exportados exitosamente', 'success');
-  } catch (error) {
-    console.error('Error exporting data:', error);
-    showNotification('❌ Error al exportar datos', 'error');
-  }
-}
-
-// Import data from JSON
-async function importData(event) {
-  try {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        
-        // Clear existing data
-        await db.delete();
-        await db.open();
-        
-        // Import data
-        if (data.tareas) await db.tareas.bulkAdd(data.tareas);
-        if (data.archivos) await db.archivos.bulkAdd(data.archivos);
-        if (data.comentarios) await db.comentarios.bulkAdd(data.comentarios);
-        if (data.colaboradores) await db.colaboradores.bulkAdd(data.colaboradores);
-        if (data.configuracion) await db.configuracion.bulkAdd(data.configuracion);
-        if (data.actividades) await db.actividades.bulkAdd(data.actividades);
-        
-        // Add activity
-        await db.actividades.add({
-          tipo: 'importacion',
-          descripcion: 'Datos importados desde JSON',
-          fecha: new Date().toISOString()
-        });
-        
-        // Refresh all views
-        await loadDashboard();
-        await loadTasks();
-        await loadCollaborators();
-        await loadConfiguration();
-        await updateDataDisplay();
-        
-        showNotification('✅ Datos importados exitosamente', 'success');
-      } catch (error) {
-        console.error('Error parsing JSON:', error);
-        showNotification('❌ Error al procesar archivo JSON', 'error');
-      }
-    };
-    
-    reader.readAsText(file);
-  } catch (error) {
-    console.error('Error importing data:', error);
-    showNotification('❌ Error al importar datos', 'error');
-  }
-}
-
-// Reset data to initial state
-async function resetData() {
-  if (!confirm('¿Está seguro de que desea reiniciar todos los datos? Esta acción no se puede deshacer.')) {
-    return;
-  }
-  
-  try {
-    // Clear database
-    await db.delete();
-    await db.open();
-    
-    // Initialize with initial data
-    await initializeDatabase();
-    
-    // Refresh all views
-    await loadDashboard();
-    await loadTasks();
-    await loadCollaborators();
-    await loadConfiguration();
-    await updateDataDisplay();
-    
-    showNotification('✅ Datos reiniciados exitosamente', 'success');
-  } catch (error) {
-    console.error('Error resetting data:', error);
-    showNotification('❌ Error al reiniciar datos', 'error');
-  }
-}
-
-// Update data display
-async function updateDataDisplay() {
-  try {
-    // Tasks data
-    const tasks = await db.tareas.toArray();
-    const tasksDataEl = document.getElementById('tasks-data');
-    if (tasksDataEl) {
-      tasksDataEl.textContent = JSON.stringify(tasks, null, 2);
-    }
-    
-    // Files data
-    const files = await db.archivos.toArray();
-    const filesDataEl = document.getElementById('files-data');
-    if (filesDataEl) {
-      filesDataEl.textContent = JSON.stringify(files, null, 2);
-    }
-    
-    // Comments data
-    const comments = await db.comentarios.toArray();
-    const commentsDataEl = document.getElementById('comments-data');
-    if (commentsDataEl) {
-      commentsDataEl.textContent = JSON.stringify(comments, null, 2);
-    }
-    
-    // Database stats
-    const taskCount = await db.tareas.count();
-    const fileCount = await db.archivos.count();
-    const commentCount = await db.comentarios.count();
-    
-    const dbStatusTextEl = document.getElementById('db-status-text');
-    if (dbStatusTextEl) dbStatusTextEl.textContent = 'Activa';
-    
-    const dbTasksCountEl = document.getElementById('db-tasks-count');
-    if (dbTasksCountEl) dbTasksCountEl.textContent = taskCount;
-    
-    const dbFilesCountEl = document.getElementById('db-files-count');
-    if (dbFilesCountEl) dbFilesCountEl.textContent = fileCount;
-    
-    const dbCommentsCountEl = document.getElementById('db-comments-count');
-    if (dbCommentsCountEl) dbCommentsCountEl.textContent = commentCount;
-  } catch (error) {
-    console.error('Error updating data display:', error);
-  }
-}
-
-// Utility functions
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function formatStatus(status) {
-  const statusMap = {
-    'pendiente': 'Pendiente',
-    'en_proceso': 'En Proceso',
-    'completada': 'Completada'
-  };
-  return statusMap[status] || status;
-}
-
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <div class="notification-content">
-      <div class="notification-text">${message}</div>
-      <button class="notification-close">×</button>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item active">Dashboard</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn--outline btn--sm" id="export-btn">📥 Exportar</button>
+                    <button class="btn btn--primary btn--sm" id="settings-btn">⚙️ Configuración</button>
+                </div>
+            </header>
+            
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard">
+                <div class="dashboard-header">
+                    <h1>📊 Dashboard de Marketing Digital</h1>
+                    <p>Coworking Tepoztlán - Flujo de Trabajo Completo</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="metrics-cards">
+                        <div class="metric-card">
+                            <div class="metric-icon">📋</div>
+                            <div class="metric-info">
+                                <h3>Total de Tareas</h3>
+                                <div class="metric-value" id="total-tasks">12</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">✅</div>
+                            <div class="metric-info">
+                                <h3>Completadas</h3>
+                                <div class="metric-value success" id="completed-tasks">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">🔄</div>
+                            <div class="metric-info">
+                                <h3>En Proceso</h3>
+                                <div class="metric-value warning" id="in-progress-tasks">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">⏳</div>
+                            <div class="metric-info">
+                                <h3>Pendientes</h3>
+                                <div class="metric-value error" id="pending-tasks">12</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-overview">
+                        <h2>Resumen de Tareas</h2>
+                        <div class="task-list" id="task-overview-list">
+                            <!-- Tasks will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="recent-activity">
+                        <h2>Actividad Reciente</h2>
+                        <div class="activity-list" id="activity-list">
+                            <!-- Activities will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Task Pages (1-12) -->
+            <div class="page" id="task-1">
+                <div class="task-page-header">
+                    <div class="task-icon-large">🚀</div>
+                    <div class="task-info">
+                        <h1>Kick-off Meeting</h1>
+                        <p>Definir objetivos SMART, canales y tono de marca</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Project Lead</strong></span>
+                            <span class="meta-item">📱 <strong>Microsoft Teams</strong></span>
+                            <span class="meta-item">⏱️ <strong>2 horas</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🎯 Objetivos</h3>
+                            <ul>
+                                <li>Establecer objetivos SMART del proyecto</li>
+                                <li>Definir canales de marketing prioritarios</li>
+                                <li>Acordar tono de marca y messaging</li>
+                                <li>Revisar timeline y recursos disponibles</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Brief aprobado con objetivos, canales y guidelines de marca</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-1">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-1" multiple>
+                            <div class="files-list" id="files-list-1"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-1" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(1)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-1"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('dashboard')">← Dashboard</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-2')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 2 -->
+            <div class="page" id="task-2">
+                <div class="task-page-header">
+                    <div class="task-icon-large">🔍</div>
+                    <div class="task-info">
+                        <h1>Auditoría Digital</h1>
+                        <p>Revisar sitios, redes y CRM para detectar brechas</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Estratega Digital</strong></span>
+                            <span class="meta-item">📱 <strong>SEMrush</strong></span>
+                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🔍 Alcance de Auditoría</h3>
+                            <ul>
+                                <li>Análisis SEO completo del sitio web</li>
+                                <li>Revisión de perfiles en redes sociales</li>
+                                <li>Evaluación del CRM actual</li>
+                                <li>Identificación de brechas y oportunidades</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Informe detallado de auditoría con recomendaciones prioritarias</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-2">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-2" multiple>
+                            <div class="files-list" id="files-list-2"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-2" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(2)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-2"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-1')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-3')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 3 -->
+            <div class="page" id="task-3">
+                <div class="task-page-header">
+                    <div class="task-icon-large">👥</div>
+                    <div class="task-info">
+                        <h1>Buyer Persona IA</h1>
+                        <p>Generar 2 perfiles con IA (dolores, objeciones)</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Research AI Specialist</strong></span>
+                            <span class="meta-item">📱 <strong>Perplexity AI</strong></span>
+                            <span class="meta-item">⏱️ <strong>3 días</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🎯 Objetivos</h3>
+                            <ul>
+                                <li>Crear 2 buyer personas detalladas</li>
+                                <li>Identificar pain points específicos</li>
+                                <li>Mapear objeciones comunes</li>
+                                <li>Definir canales de comunicación preferidos</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Documento de personas con perfiles detallados y actionable insights</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-3">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-3" multiple>
+                            <div class="files-list" id="files-list-3"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-3" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(3)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-3"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-2')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-4')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 4 -->
+            <div class="page" id="task-4">
+                <div class="task-page-header">
+                    <div class="task-icon-large">📅</div>
+                    <div class="task-info">
+                        <h1>Plan de Contenidos</h1>
+                        <p>Calendario 30 días con Copy.ai (blog, reels)</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Content Manager</strong></span>
+                            <span class="meta-item">📱 <strong>Later</strong></span>
+                            <span class="meta-item">⏱️ <strong>5 días</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>📅 Planificación</h3>
+                            <ul>
+                                <li>Calendario de contenidos 30 días</li>
+                                <li>Mix de formatos: blog, reels, stories</li>
+                                <li>Contenido educativo y promocional</li>
+                                <li>Optimización para cada plataforma</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Calendario de contenidos con posts programados y copy optimizado</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-4">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-4" multiple>
+                            <div class="files-list" id="files-list-4"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-4" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(4)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-4"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-3')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-5')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 5 -->
+            <div class="page" id="task-5">
+                <div class="task-page-header">
+                    <div class="task-icon-large">🎨</div>
+                    <div class="task-info">
+                        <h1>Diseño Creativo</h1>
+                        <p>3 imágenes + 1 video corto con Canva Magic Media</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Diseñador</strong></span>
+                            <span class="meta-item">📱 <strong>Canva</strong></span>
+                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🎨 Creativos a Desarrollar</h3>
+                            <ul>
+                                <li>3 imágenes principales para campaigns</li>
+                                <li>1 video corto (30 segundos)</li>
+                                <li>Adaptaciones para diferentes formatos</li>
+                                <li>Mantenimiento de identidad visual</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Pack de creativos optimizados para cada plataforma</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-5">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-5" multiple>
+                            <div class="files-list" id="files-list-5"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-5" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(5)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-5"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-4')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-6')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 6 -->
+            <div class="page" id="task-6">
+                <div class="task-page-header">
+                    <div class="task-icon-large">⚡</div>
+                    <div class="task-info">
+                        <h1>Automatización Lead → CRM</h1>
+                        <p>Zapier: Form → HubSpot, mail + Slack alerta</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Marketing Ops</strong></span>
+                            <span class="meta-item">📱 <strong>Zapier</strong></span>
+                            <span class="meta-item">⏱️ <strong>3 días</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>⚡ Automatizaciones</h3>
+                            <ul>
+                                <li>Formulario web → HubSpot CRM</li>
+                                <li>Email de confirmación automático</li>
+                                <li>Notificación en Slack al equipo</li>
+                                <li>Segmentación automática de leads</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Flujos automáticos configurados y documentados</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-6">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-6" multiple>
+                            <div class="files-list" id="files-list-6"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-6" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(6)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-6"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-5')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-7')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 7 -->
+            <div class="page" id="task-7">
+                <div class="task-page-header">
+                    <div class="task-icon-large">📧</div>
+                    <div class="task-info">
+                        <h1>Secuencia Email Nurture</h1>
+                        <p>5 mails personalizados con IA y A/B copy</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Email Strategist</strong></span>
+                            <span class="meta-item">📱 <strong>Mailchimp</strong></span>
+                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>📧 Secuencia de Emails</h3>
+                            <ul>
+                                <li>Email 1: Bienvenida y presentación</li>
+                                <li>Email 2: Educativo sobre coworking</li>
+                                <li>Email 3: Testimonios y casos de éxito</li>
+                                <li>Email 4: Oferta especial</li>
+                                <li>Email 5: Llamada a la acción final</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Secuencia de emails con A/B testing configurado</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-7">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-7" multiple>
+                            <div class="files-list" id="files-list-7"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-7" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(7)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-7"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-6')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-8')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 8 -->
+            <div class="page" id="task-8">
+                <div class="task-page-header">
+                    <div class="task-icon-large">🎯</div>
+                    <div class="task-info">
+                        <h1>Configuración Adext AI</h1>
+                        <p>Conectar cuentas, definir audiencias y budget</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Paid Media Mgr</strong></span>
+                            <span class="meta-item">📱 <strong>Meta Ads Manager</strong></span>
+                            <span class="meta-item">⏱️ <strong>2 días</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🎯 Configuración</h3>
+                            <ul>
+                                <li>Conexión de cuentas publicitarias</li>
+                                <li>Definición de audiencias objetivo</li>
+                                <li>Configuración de presupuestos</li>
+                                <li>Setup de tracking y conversiones</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Configuración completa de cuentas y audiencias</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-8">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-8" multiple>
+                            <div class="files-list" id="files-list-8"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-8" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(8)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-8"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-7')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-9')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 9 -->
+            <div class="page" id="task-9">
+                <div class="task-page-header">
+                    <div class="task-icon-large">📈</div>
+                    <div class="task-info">
+                        <h1>Lanzamiento Campañas</h1>
+                        <p>Activar FB/IG + Google; etiquetar UTM</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Paid Media Mgr</strong></span>
+                            <span class="meta-item">📱 <strong>Google Ads</strong></span>
+                            <span class="meta-item">⏱️ <strong>1 día</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🚀 Lanzamiento</h3>
+                            <ul>
+                                <li>Activación de campañas Facebook/Instagram</li>
+                                <li>Lanzamiento de campañas Google Ads</li>
+                                <li>Implementación de UTM tracking</li>
+                                <li>Monitoreo inicial de performance</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Campañas activas con tracking completo</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-9">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-9" multiple>
+                            <div class="files-list" id="files-list-9"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-9" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(9)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-9"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-8')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-10')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 10 -->
+            <div class="page" id="task-10">
+                <div class="task-page-header">
+                    <div class="task-icon-large">📊</div>
+                    <div class="task-info">
+                        <h1>Dashboard Looker</h1>
+                        <p>Plantilla KPI con GA4 + Ads + CRM</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Data Analyst</strong></span>
+                            <span class="meta-item">📱 <strong>Looker Studio</strong></span>
+                            <span class="meta-item">⏱️ <strong>5 días</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>📊 Dashboard Components</h3>
+                            <ul>
+                                <li>Integración GA4 para web analytics</li>
+                                <li>Conexión con Meta Ads y Google Ads</li>
+                                <li>Datos del CRM y conversiones</li>
+                                <li>KPIs y métricas clave visualizadas</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Dashboard en tiempo real con todas las métricas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-10">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-10" multiple>
+                            <div class="files-list" id="files-list-10"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-10" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(10)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-10"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-9')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-11')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 11 -->
+            <div class="page" id="task-11">
+                <div class="task-page-header">
+                    <div class="task-icon-large">📋</div>
+                    <div class="task-info">
+                        <h1>Revisión Semanal</h1>
+                        <p>Stand-ups, revisar métricas y backlog</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Todo el equipo</strong></span>
+                            <span class="meta-item">📱 <strong>Notion</strong></span>
+                            <span class="meta-item">⏱️ <strong>Recurrente</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>📋 Agenda Semanal</h3>
+                            <ul>
+                                <li>Revisión de métricas de la semana</li>
+                                <li>Stand-up de avances del equipo</li>
+                                <li>Identificación de blockers</li>
+                                <li>Planificación de la próxima semana</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Notas de reunión y plan de acción semanal</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-11">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-11" multiple>
+                            <div class="files-list" id="files-list-11"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-11" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(11)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-11"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-10')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('task-12')">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- Task 12 -->
+            <div class="page" id="task-12">
+                <div class="task-page-header">
+                    <div class="task-icon-large">🔧</div>
+                    <div class="task-info">
+                        <h1>Optimización CPC & Creativo</h1>
+                        <p>Pausar anuncios con CTR < 1%, probar nuevas creatividades IA</p>
+                        <div class="task-meta">
+                            <span class="meta-item">👤 <strong>Paid Media Mgr + Diseñador</strong></span>
+                            <span class="meta-item">📱 <strong>Adext AI</strong></span>
+                            <span class="meta-item">⏱️ <strong>Continuo</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-content">
+                    <div class="task-details">
+                        <div class="section">
+                            <h3>🔧 Optimizaciones</h3>
+                            <ul>
+                                <li>Análisis de performance de anuncios</li>
+                                <li>Pausa de anuncios con CTR < 1%</li>
+                                <li>Creación de nuevas creatividades</li>
+                                <li>A/B testing de elementos creativos</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Entregables</h3>
+                            <p>Reporte de optimización y nuevas creatividades</p>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions-panel">
+                        <div class="status-section">
+                            <h3>📊 Estado Actual</h3>
+                            <select class="form-control" id="task-status-12">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Proceso">🔄 En Proceso</option>
+                                <option value="Completada">✅ Completada</option>
+                            </select>
+                        </div>
+                        
+                        <div class="files-section">
+                            <h3>📎 Archivos</h3>
+                            <input type="file" class="form-control" id="task-files-12" multiple>
+                            <div class="files-list" id="files-list-12"></div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Comentarios</h3>
+                            <textarea class="form-control" id="task-comments-12" placeholder="Agregar comentario..."></textarea>
+                            <button class="btn btn--secondary" onclick="addComment(12)">Agregar Comentario</button>
+                            <div class="comments-list" id="comments-list-12"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-navigation">
+                    <button class="btn btn--outline" onclick="navigateToPage('task-11')">← Anterior</button>
+                    <button class="btn btn--primary" onclick="navigateToPage('dashboard')">Dashboard</button>
+                </div>
+            </div>
+            
+        </main>
     </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    notification.remove();
-  }, 5000);
-  
-  // Manual close
-  notification.querySelector('.notification-close').addEventListener('click', () => {
-    notification.remove();
-  });
-}
-
-// Make functions available globally
-window.openTaskModal = openTaskModal;
-window.changeTaskStatus = changeTaskStatus;
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Configuración</h2>
+                <button class="modal-close" id="close-settings">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Proyecto</label>
+                    <input type="text" class="form-control" id="project-name" value="Marketing Digital Coworking Tepoztlán">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Presupuesto Total ($)</label>
+                    <input type="number" class="form-control" id="project-budget" value="1000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Objetivo CPA ($)</label>
+                    <input type="number" class="form-control" id="target-cpa" value="15">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Objetivo ROAS</label>
+                    <input type="number" step="0.1" class="form-control" id="target-roas" value="1.5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--outline" id="cancel-settings">Cancelar</button>
+                <button class="btn btn--primary" id="save-settings">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

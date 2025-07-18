@@ -1,989 +1,949 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flujo de Marketing Digital - Coworking Tepoztlán</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
-</head>
-<body>
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h2>🏢 Coworking Tepoztlán</h2>
-                <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
-            </div>
-            
-            <div class="sidebar-content">
-                <div class="progress-overview">
-                    <h3>Progreso General</h3>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <span class="progress-text" id="progress-text">0/12 Completadas</span>
-                </div>
-                
-                <div class="nav-menu">
-                    <button class="nav-item active" data-page="dashboard">
-                        <span class="nav-icon">📊</span>
-                        <span class="nav-text">Dashboard</span>
-                    </button>
-                    
-                    <div class="nav-section">
-                        <h4>Tareas del Flujo</h4>
-                        <button class="nav-item" data-page="task-1">
-                            <span class="nav-icon">🚀</span>
-                            <span class="nav-text">Kick-off Meeting</span>
-                            <span class="nav-status" id="status-1">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-2">
-                            <span class="nav-icon">🔍</span>
-                            <span class="nav-text">Auditoría Digital</span>
-                            <span class="nav-status" id="status-2">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-3">
-                            <span class="nav-icon">👥</span>
-                            <span class="nav-text">Buyer Persona IA</span>
-                            <span class="nav-status" id="status-3">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-4">
-                            <span class="nav-icon">📅</span>
-                            <span class="nav-text">Plan de Contenidos</span>
-                            <span class="nav-status" id="status-4">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-5">
-                            <span class="nav-icon">🎨</span>
-                            <span class="nav-text">Diseño Creativo</span>
-                            <span class="nav-status" id="status-5">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-6">
-                            <span class="nav-icon">⚡</span>
-                            <span class="nav-text">Automatización Lead</span>
-                            <span class="nav-status" id="status-6">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-7">
-                            <span class="nav-icon">📧</span>
-                            <span class="nav-text">Email Nurture</span>
-                            <span class="nav-status" id="status-7">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-8">
-                            <span class="nav-icon">🎯</span>
-                            <span class="nav-text">Configuración Adext</span>
-                            <span class="nav-status" id="status-8">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-9">
-                            <span class="nav-icon">📈</span>
-                            <span class="nav-text">Lanzamiento Campañas</span>
-                            <span class="nav-status" id="status-9">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-10">
-                            <span class="nav-icon">📊</span>
-                            <span class="nav-text">Dashboard Looker</span>
-                            <span class="nav-status" id="status-10">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-11">
-                            <span class="nav-icon">📋</span>
-                            <span class="nav-text">Revisión Semanal</span>
-                            <span class="nav-status" id="status-11">⏳</span>
-                        </button>
-                        
-                        <button class="nav-item" data-page="task-12">
-                            <span class="nav-icon">🔧</span>
-                            <span class="nav-text">Optimización CPC</span>
-                            <span class="nav-status" id="status-12">⏳</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </nav>
-        
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="breadcrumb" id="breadcrumb">
-                    <span class="breadcrumb-item active">Dashboard</span>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn--outline btn--sm" id="export-btn">📥 Exportar</button>
-                    <button class="btn btn--primary btn--sm" id="settings-btn">⚙️ Configuración</button>
-                </div>
-            </header>
-            
-            <!-- Dashboard Page -->
-            <div class="page active" id="dashboard">
-                <div class="dashboard-header">
-                    <h1>📊 Dashboard de Marketing Digital</h1>
-                    <p>Coworking Tepoztlán - Flujo de Trabajo Completo</p>
-                </div>
-                
-                <div class="dashboard-grid">
-                    <div class="metrics-cards">
-                        <div class="metric-card">
-                            <div class="metric-icon">📋</div>
-                            <div class="metric-info">
-                                <h3>Total de Tareas</h3>
-                                <div class="metric-value" id="total-tasks">12</div>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">✅</div>
-                            <div class="metric-info">
-                                <h3>Completadas</h3>
-                                <div class="metric-value success" id="completed-tasks">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">🔄</div>
-                            <div class="metric-info">
-                                <h3>En Proceso</h3>
-                                <div class="metric-value warning" id="in-progress-tasks">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">⏳</div>
-                            <div class="metric-info">
-                                <h3>Pendientes</h3>
-                                <div class="metric-value error" id="pending-tasks">12</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="task-overview">
-                        <h2>Resumen de Tareas</h2>
-                        <div class="task-list" id="task-overview-list">
-                            <!-- Tasks will be populated here -->
-                        </div>
-                    </div>
-                    
-                    <div class="recent-activity">
-                        <h2>Actividad Reciente</h2>
-                        <div class="activity-list" id="activity-list">
-                            <!-- Activities will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Task Pages (1-12) -->
-            <div class="page" id="task-1">
-                <div class="task-page-header">
-                    <div class="task-icon-large">🚀</div>
-                    <div class="task-info">
-                        <h1>Kick-off Meeting</h1>
-                        <p>Definir objetivos SMART, canales y tono de marca</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Project Lead</strong></span>
-                            <span class="meta-item">📱 <strong>Microsoft Teams</strong></span>
-                            <span class="meta-item">⏱️ <strong>2 horas</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🎯 Objetivos</h3>
-                            <ul>
-                                <li>Establecer objetivos SMART del proyecto</li>
-                                <li>Definir canales de marketing prioritarios</li>
-                                <li>Acordar tono de marca y messaging</li>
-                                <li>Revisar timeline y recursos disponibles</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Brief aprobado con objetivos, canales y guidelines de marca</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-1">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-1" multiple>
-                            <div class="files-list" id="files-list-1"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-1" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(1)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-1"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('dashboard')">← Dashboard</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-2')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 2 -->
-            <div class="page" id="task-2">
-                <div class="task-page-header">
-                    <div class="task-icon-large">🔍</div>
-                    <div class="task-info">
-                        <h1>Auditoría Digital</h1>
-                        <p>Revisar sitios, redes y CRM para detectar brechas</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Estratega Digital</strong></span>
-                            <span class="meta-item">📱 <strong>SEMrush</strong></span>
-                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🔍 Alcance de Auditoría</h3>
-                            <ul>
-                                <li>Análisis SEO completo del sitio web</li>
-                                <li>Revisión de perfiles en redes sociales</li>
-                                <li>Evaluación del CRM actual</li>
-                                <li>Identificación de brechas y oportunidades</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Informe detallado de auditoría con recomendaciones prioritarias</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-2">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-2" multiple>
-                            <div class="files-list" id="files-list-2"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-2" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(2)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-2"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-1')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-3')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 3 -->
-            <div class="page" id="task-3">
-                <div class="task-page-header">
-                    <div class="task-icon-large">👥</div>
-                    <div class="task-info">
-                        <h1>Buyer Persona IA</h1>
-                        <p>Generar 2 perfiles con IA (dolores, objeciones)</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Research AI Specialist</strong></span>
-                            <span class="meta-item">📱 <strong>Perplexity AI</strong></span>
-                            <span class="meta-item">⏱️ <strong>3 días</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🎯 Objetivos</h3>
-                            <ul>
-                                <li>Crear 2 buyer personas detalladas</li>
-                                <li>Identificar pain points específicos</li>
-                                <li>Mapear objeciones comunes</li>
-                                <li>Definir canales de comunicación preferidos</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Documento de personas con perfiles detallados y actionable insights</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-3">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-3" multiple>
-                            <div class="files-list" id="files-list-3"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-3" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(3)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-3"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-2')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-4')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 4 -->
-            <div class="page" id="task-4">
-                <div class="task-page-header">
-                    <div class="task-icon-large">📅</div>
-                    <div class="task-info">
-                        <h1>Plan de Contenidos</h1>
-                        <p>Calendario 30 días con Copy.ai (blog, reels)</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Content Manager</strong></span>
-                            <span class="meta-item">📱 <strong>Later</strong></span>
-                            <span class="meta-item">⏱️ <strong>5 días</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>📅 Planificación</h3>
-                            <ul>
-                                <li>Calendario de contenidos 30 días</li>
-                                <li>Mix de formatos: blog, reels, stories</li>
-                                <li>Contenido educativo y promocional</li>
-                                <li>Optimización para cada plataforma</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Calendario de contenidos con posts programados y copy optimizado</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-4">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-4" multiple>
-                            <div class="files-list" id="files-list-4"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-4" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(4)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-4"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-3')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-5')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 5 -->
-            <div class="page" id="task-5">
-                <div class="task-page-header">
-                    <div class="task-icon-large">🎨</div>
-                    <div class="task-info">
-                        <h1>Diseño Creativo</h1>
-                        <p>3 imágenes + 1 video corto con Canva Magic Media</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Diseñador</strong></span>
-                            <span class="meta-item">📱 <strong>Canva</strong></span>
-                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🎨 Creativos a Desarrollar</h3>
-                            <ul>
-                                <li>3 imágenes principales para campaigns</li>
-                                <li>1 video corto (30 segundos)</li>
-                                <li>Adaptaciones para diferentes formatos</li>
-                                <li>Mantenimiento de identidad visual</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Pack de creativos optimizados para cada plataforma</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-5">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-5" multiple>
-                            <div class="files-list" id="files-list-5"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-5" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(5)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-5"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-4')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-6')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 6 -->
-            <div class="page" id="task-6">
-                <div class="task-page-header">
-                    <div class="task-icon-large">⚡</div>
-                    <div class="task-info">
-                        <h1>Automatización Lead → CRM</h1>
-                        <p>Zapier: Form → HubSpot, mail + Slack alerta</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Marketing Ops</strong></span>
-                            <span class="meta-item">📱 <strong>Zapier</strong></span>
-                            <span class="meta-item">⏱️ <strong>3 días</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>⚡ Automatizaciones</h3>
-                            <ul>
-                                <li>Formulario web → HubSpot CRM</li>
-                                <li>Email de confirmación automático</li>
-                                <li>Notificación en Slack al equipo</li>
-                                <li>Segmentación automática de leads</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Flujos automáticos configurados y documentados</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-6">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-6" multiple>
-                            <div class="files-list" id="files-list-6"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-6" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(6)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-6"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-5')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-7')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 7 -->
-            <div class="page" id="task-7">
-                <div class="task-page-header">
-                    <div class="task-icon-large">📧</div>
-                    <div class="task-info">
-                        <h1>Secuencia Email Nurture</h1>
-                        <p>5 mails personalizados con IA y A/B copy</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Email Strategist</strong></span>
-                            <span class="meta-item">📱 <strong>Mailchimp</strong></span>
-                            <span class="meta-item">⏱️ <strong>1 semana</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>📧 Secuencia de Emails</h3>
-                            <ul>
-                                <li>Email 1: Bienvenida y presentación</li>
-                                <li>Email 2: Educativo sobre coworking</li>
-                                <li>Email 3: Testimonios y casos de éxito</li>
-                                <li>Email 4: Oferta especial</li>
-                                <li>Email 5: Llamada a la acción final</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Secuencia de emails con A/B testing configurado</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-7">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-7" multiple>
-                            <div class="files-list" id="files-list-7"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-7" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(7)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-7"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-6')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-8')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 8 -->
-            <div class="page" id="task-8">
-                <div class="task-page-header">
-                    <div class="task-icon-large">🎯</div>
-                    <div class="task-info">
-                        <h1>Configuración Adext AI</h1>
-                        <p>Conectar cuentas, definir audiencias y budget</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Paid Media Mgr</strong></span>
-                            <span class="meta-item">📱 <strong>Meta Ads Manager</strong></span>
-                            <span class="meta-item">⏱️ <strong>2 días</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🎯 Configuración</h3>
-                            <ul>
-                                <li>Conexión de cuentas publicitarias</li>
-                                <li>Definición de audiencias objetivo</li>
-                                <li>Configuración de presupuestos</li>
-                                <li>Setup de tracking y conversiones</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Configuración completa de cuentas y audiencias</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-8">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-8" multiple>
-                            <div class="files-list" id="files-list-8"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-8" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(8)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-8"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-7')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-9')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 9 -->
-            <div class="page" id="task-9">
-                <div class="task-page-header">
-                    <div class="task-icon-large">📈</div>
-                    <div class="task-info">
-                        <h1>Lanzamiento Campañas</h1>
-                        <p>Activar FB/IG + Google; etiquetar UTM</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Paid Media Mgr</strong></span>
-                            <span class="meta-item">📱 <strong>Google Ads</strong></span>
-                            <span class="meta-item">⏱️ <strong>1 día</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🚀 Lanzamiento</h3>
-                            <ul>
-                                <li>Activación de campañas Facebook/Instagram</li>
-                                <li>Lanzamiento de campañas Google Ads</li>
-                                <li>Implementación de UTM tracking</li>
-                                <li>Monitoreo inicial de performance</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Campañas activas con tracking completo</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-9">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-9" multiple>
-                            <div class="files-list" id="files-list-9"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-9" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(9)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-9"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-8')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-10')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 10 -->
-            <div class="page" id="task-10">
-                <div class="task-page-header">
-                    <div class="task-icon-large">📊</div>
-                    <div class="task-info">
-                        <h1>Dashboard Looker</h1>
-                        <p>Plantilla KPI con GA4 + Ads + CRM</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Data Analyst</strong></span>
-                            <span class="meta-item">📱 <strong>Looker Studio</strong></span>
-                            <span class="meta-item">⏱️ <strong>5 días</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>📊 Dashboard Components</h3>
-                            <ul>
-                                <li>Integración GA4 para web analytics</li>
-                                <li>Conexión con Meta Ads y Google Ads</li>
-                                <li>Datos del CRM y conversiones</li>
-                                <li>KPIs y métricas clave visualizadas</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Dashboard en tiempo real con todas las métricas</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-10">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-10" multiple>
-                            <div class="files-list" id="files-list-10"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-10" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(10)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-10"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-9')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-11')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 11 -->
-            <div class="page" id="task-11">
-                <div class="task-page-header">
-                    <div class="task-icon-large">📋</div>
-                    <div class="task-info">
-                        <h1>Revisión Semanal</h1>
-                        <p>Stand-ups, revisar métricas y backlog</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Todo el equipo</strong></span>
-                            <span class="meta-item">📱 <strong>Notion</strong></span>
-                            <span class="meta-item">⏱️ <strong>Recurrente</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>📋 Agenda Semanal</h3>
-                            <ul>
-                                <li>Revisión de métricas de la semana</li>
-                                <li>Stand-up de avances del equipo</li>
-                                <li>Identificación de blockers</li>
-                                <li>Planificación de la próxima semana</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Notas de reunión y plan de acción semanal</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-11">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-11" multiple>
-                            <div class="files-list" id="files-list-11"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-11" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(11)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-11"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-10')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('task-12')">Siguiente →</button>
-                </div>
-            </div>
-            
-            <!-- Task 12 -->
-            <div class="page" id="task-12">
-                <div class="task-page-header">
-                    <div class="task-icon-large">🔧</div>
-                    <div class="task-info">
-                        <h1>Optimización CPC & Creativo</h1>
-                        <p>Pausar anuncios con CTR < 1%, probar nuevas creatividades IA</p>
-                        <div class="task-meta">
-                            <span class="meta-item">👤 <strong>Paid Media Mgr + Diseñador</strong></span>
-                            <span class="meta-item">📱 <strong>Adext AI</strong></span>
-                            <span class="meta-item">⏱️ <strong>Continuo</strong></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-content">
-                    <div class="task-details">
-                        <div class="section">
-                            <h3>🔧 Optimizaciones</h3>
-                            <ul>
-                                <li>Análisis de performance de anuncios</li>
-                                <li>Pausa de anuncios con CTR < 1%</li>
-                                <li>Creación de nuevas creatividades</li>
-                                <li>A/B testing de elementos creativos</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>📋 Entregables</h3>
-                            <p>Reporte de optimización y nuevas creatividades</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-actions-panel">
-                        <div class="status-section">
-                            <h3>📊 Estado Actual</h3>
-                            <select class="form-control" id="task-status-12">
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En Proceso">🔄 En Proceso</option>
-                                <option value="Completada">✅ Completada</option>
-                            </select>
-                        </div>
-                        
-                        <div class="files-section">
-                            <h3>📎 Archivos</h3>
-                            <input type="file" class="form-control" id="task-files-12" multiple>
-                            <div class="files-list" id="files-list-12"></div>
-                        </div>
-                        
-                        <div class="comments-section">
-                            <h3>💬 Comentarios</h3>
-                            <textarea class="form-control" id="task-comments-12" placeholder="Agregar comentario..."></textarea>
-                            <button class="btn btn--secondary" onclick="addComment(12)">Agregar Comentario</button>
-                            <div class="comments-list" id="comments-list-12"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="task-navigation">
-                    <button class="btn btn--outline" onclick="navigateToPage('task-11')">← Anterior</button>
-                    <button class="btn btn--primary" onclick="navigateToPage('dashboard')">Dashboard</button>
-                </div>
-            </div>
-            
-        </main>
-    </div>
+// Initialize Dexie Database
+const db = new Dexie('MarketingWorkflowDB');
+
+// Define database schema
+db.version(1).stores({
+  tasks: '++id, name, description, status, responsible, application, icon, duration, priority, created_at, updated_at',
+  files: '++id, task_id, name, size, type, content, uploaded_at',
+  comments: '++id, task_id, text, author, created_at',
+  settings: '++id, key, value',
+  activities: '++id, type, description, created_at'
+});
+
+// Global application state
+const appState = {
+  currentPage: 'dashboard',
+  sidebarCollapsed: false,
+  tasks: [],
+  settings: {
+    projectName: 'Marketing Digital Coworking Tepoztlán',
+    budget: 1000,
+    targetCPA: 15,
+    targetROAS: 1.5
+  }
+};
+
+// Initial tasks data
+const initialTasks = [
+  {
+    id: 1,
+    name: 'Kick-off Meeting',
+    description: 'Definir objetivos SMART, canales y tono de marca',
+    status: 'Pendiente',
+    responsible: 'Project Lead',
+    application: 'Microsoft Teams',
+    icon: '🚀',
+    duration: '2 horas',
+    priority: 'Alta',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: 'Auditoría Digital',
+    description: 'Revisar sitios, redes y CRM para detectar brechas',
+    status: 'Pendiente',
+    responsible: 'Estratega Digital',
+    application: 'SEMrush',
+    icon: '🔍',
+    duration: '1 semana',
+    priority: 'Alta',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 3,
+    name: 'Buyer Persona IA',
+    description: 'Generar 2 perfiles con IA (dolores, objeciones)',
+    status: 'Pendiente',
+    responsible: 'Research AI Specialist',
+    application: 'Perplexity AI',
+    icon: '👥',
+    duration: '3 días',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 4,
+    name: 'Plan de Contenidos',
+    description: 'Calendario 30 días con Copy.ai (blog, reels)',
+    status: 'Pendiente',
+    responsible: 'Content Manager',
+    application: 'Later',
+    icon: '📅',
+    duration: '5 días',
+    priority: 'Alta',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 5,
+    name: 'Diseño Creativo',
+    description: '3 imágenes + 1 video corto con Canva Magic Media',
+    status: 'Pendiente',
+    responsible: 'Diseñador',
+    application: 'Canva',
+    icon: '🎨',
+    duration: '1 semana',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 6,
+    name: 'Automatización Lead → CRM',
+    description: 'Zapier: Form → HubSpot, mail + Slack alerta',
+    status: 'Pendiente',
+    responsible: 'Marketing Ops',
+    application: 'Zapier',
+    icon: '⚡',
+    duration: '3 días',
+    priority: 'Alta',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 7,
+    name: 'Secuencia Email Nurture',
+    description: '5 mails personalizados con IA y A/B copy',
+    status: 'Pendiente',
+    responsible: 'Email Strategist',
+    application: 'Mailchimp',
+    icon: '📧',
+    duration: '1 semana',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 8,
+    name: 'Configuración Adext AI',
+    description: 'Conectar cuentas, definir audiencias y budget',
+    status: 'Pendiente',
+    responsible: 'Paid Media Mgr',
+    application: 'Meta Ads Manager',
+    icon: '🎯',
+    duration: '2 días',
+    priority: 'Alta',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 9,
+    name: 'Lanzamiento Campañas',
+    description: 'Activar FB/IG + Google; etiquetar UTM',
+    status: 'Pendiente',
+    responsible: 'Paid Media Mgr',
+    application: 'Google Ads',
+    icon: '📈',
+    duration: '1 día',
+    priority: 'Crítica',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 10,
+    name: 'Dashboard Looker',
+    description: 'Plantilla KPI con GA4 + Ads + CRM',
+    status: 'Pendiente',
+    responsible: 'Data Analyst',
+    application: 'Looker Studio',
+    icon: '📊',
+    duration: '5 días',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 11,
+    name: 'Revisión Semanal',
+    description: 'Stand-ups, revisar métricas y backlog',
+    status: 'Pendiente',
+    responsible: 'Todo el equipo',
+    application: 'Notion',
+    icon: '📋',
+    duration: 'Recurrente',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 12,
+    name: 'Optimización CPC & Creativo',
+    description: 'Pausar anuncios con CTR < 1%, probar nuevas creatividades IA',
+    status: 'Pendiente',
+    responsible: 'Paid Media Mgr + Diseñador',
+    application: 'Adext AI',
+    icon: '🔧',
+    duration: 'Continuo',
+    priority: 'Media',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+// Initialize application when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function() {
+  try {
+    await initializeDatabase();
+    await initializeApp();
+    setupEventListeners();
+    await loadData();
+    showNotification('✅ Aplicación inicializada correctamente', 'success');
+  } catch (error) {
+    console.error('Error initializing app:', error);
+    showNotification('❌ Error al inicializar la aplicación', 'error');
+  }
+});
+
+// Initialize database with initial data
+async function initializeDatabase() {
+  try {
+    const taskCount = await db.tasks.count();
     
-    <!-- Settings Modal -->
-    <div class="modal" id="settings-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Configuración</h2>
-                <button class="modal-close" id="close-settings">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Nombre del Proyecto</label>
-                    <input type="text" class="form-control" id="project-name" value="Marketing Digital Coworking Tepoztlán">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Presupuesto Total ($)</label>
-                    <input type="number" class="form-control" id="project-budget" value="1000">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Objetivo CPA ($)</label>
-                    <input type="number" class="form-control" id="target-cpa" value="15">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Objetivo ROAS</label>
-                    <input type="number" step="0.1" class="form-control" id="target-roas" value="1.5">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn--outline" id="cancel-settings">Cancelar</button>
-                <button class="btn btn--primary" id="save-settings">Guardar</button>
-            </div>
+    if (taskCount === 0) {
+      // Initialize with sample data
+      await db.tasks.bulkAdd(initialTasks);
+      
+      // Add initial settings
+      await db.settings.add({
+        key: 'projectName',
+        value: 'Marketing Digital Coworking Tepoztlán'
+      });
+      
+      await db.settings.add({
+        key: 'budget',
+        value: 1000
+      });
+      
+      await db.settings.add({
+        key: 'targetCPA',
+        value: 15
+      });
+      
+      await db.settings.add({
+        key: 'targetROAS',
+        value: 1.5
+      });
+      
+      // Add initial activity
+      await db.activities.add({
+        type: 'system',
+        description: 'Base de datos inicializada con datos del proyecto',
+        created_at: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
+}
+
+// Initialize application
+async function initializeApp() {
+  try {
+    // Load tasks into app state
+    appState.tasks = await db.tasks.toArray();
+    
+    // Load settings
+    const settings = await db.settings.toArray();
+    settings.forEach(setting => {
+      appState.settings[setting.key] = setting.value;
+    });
+    
+    // Set up periodic updates
+    setInterval(async () => {
+      await updateDashboard();
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Error in app initialization:', error);
+    throw error;
+  }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Sidebar navigation - Fixed implementation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const page = e.currentTarget.dataset.page;
+      console.log('Navigation clicked:', page); // Debug log
+      if (page) {
+        navigateToPage(page);
+      }
+    });
+  });
+
+  // Sidebar toggle
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSidebar();
+    });
+  }
+
+  // Header actions
+  const exportBtn = document.getElementById('export-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      exportData();
+    });
+  }
+
+  const settingsBtn = document.getElementById('settings-btn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openSettings();
+    });
+  }
+
+  // Settings modal
+  const closeSettings = document.getElementById('close-settings');
+  if (closeSettings) {
+    closeSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSettingsModal();
+    });
+  }
+
+  const cancelSettings = document.getElementById('cancel-settings');
+  if (cancelSettings) {
+    cancelSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSettingsModal();
+    });
+  }
+
+  const saveSettingsBtn = document.getElementById('save-settings');
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveSettingsHandler();
+    });
+  }
+
+  // Task status changes and file uploads
+  for (let i = 1; i <= 12; i++) {
+    const statusSelect = document.getElementById(`task-status-${i}`);
+    if (statusSelect) {
+      statusSelect.addEventListener('change', (e) => {
+        updateTaskStatus(i, e.target.value);
+      });
+    }
+
+    const filesInput = document.getElementById(`task-files-${i}`);
+    if (filesInput) {
+      filesInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFileUpload(i, e.target.files);
+        }
+      });
+    }
+  }
+
+  // Modal click outside to close
+  const settingsModal = document.getElementById('settings-modal');
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        closeSettingsModal();
+      }
+    });
+  }
+}
+
+// Navigation functions
+function navigateToPage(pageId) {
+  console.log('Navigating to:', pageId); // Debug log
+  
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  // Show target page
+  const targetPage = document.getElementById(pageId);
+  if (targetPage) {
+    targetPage.classList.add('active');
+    console.log('Page activated:', pageId); // Debug log
+  } else {
+    console.error('Page not found:', pageId); // Debug log
+  }
+
+  // Update navigation items
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+
+  const activeNavItem = document.querySelector(`[data-page="${pageId}"]`);
+  if (activeNavItem) {
+    activeNavItem.classList.add('active');
+  }
+
+  // Update breadcrumb
+  updateBreadcrumb(pageId);
+
+  // Update app state
+  appState.currentPage = pageId;
+
+  // Load specific page data
+  if (pageId === 'dashboard') {
+    loadDashboard();
+  } else if (pageId.startsWith('task-')) {
+    const taskId = parseInt(pageId.split('-')[1]);
+    loadTaskPage(taskId);
+  }
+}
+
+function updateBreadcrumb(pageId) {
+  const breadcrumb = document.getElementById('breadcrumb');
+  if (!breadcrumb) return;
+
+  breadcrumb.innerHTML = '';
+
+  if (pageId === 'dashboard') {
+    breadcrumb.innerHTML = '<span class="breadcrumb-item active">Dashboard</span>';
+  } else if (pageId.startsWith('task-')) {
+    const taskId = parseInt(pageId.split('-')[1]);
+    const task = appState.tasks.find(t => t.id === taskId);
+    if (task) {
+      breadcrumb.innerHTML = `
+        <span class="breadcrumb-item">Dashboard</span>
+        <span class="breadcrumb-item active">${task.name}</span>
+      `;
+    }
+  }
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  if (sidebar && mainContent) {
+    sidebar.classList.toggle('collapsed');
+    appState.sidebarCollapsed = !appState.sidebarCollapsed;
+    console.log('Sidebar toggled:', appState.sidebarCollapsed); // Debug log
+  }
+}
+
+// Dashboard functions
+async function loadDashboard() {
+  try {
+    await updateDashboard();
+    await loadTaskOverview();
+    await loadRecentActivity();
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+  }
+}
+
+async function updateDashboard() {
+  try {
+    const tasks = await db.tasks.toArray();
+    
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status === 'Completada').length;
+    const inProgressTasks = tasks.filter(task => task.status === 'En Proceso').length;
+    const pendingTasks = tasks.filter(task => task.status === 'Pendiente').length;
+    
+    // Update metric cards
+    updateElement('total-tasks', totalTasks);
+    updateElement('completed-tasks', completedTasks);
+    updateElement('in-progress-tasks', inProgressTasks);
+    updateElement('pending-tasks', pendingTasks);
+    
+    // Update progress bar
+    const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    const progressFill = document.getElementById('progress-fill');
+    if (progressFill) {
+      progressFill.style.width = `${progressPercentage}%`;
+    }
+    
+    const progressText = document.getElementById('progress-text');
+    if (progressText) {
+      progressText.textContent = `${completedTasks}/${totalTasks} Completadas`;
+    }
+    
+    // Update navigation status indicators
+    tasks.forEach(task => {
+      const statusEl = document.getElementById(`status-${task.id}`);
+      if (statusEl) {
+        statusEl.textContent = getStatusEmoji(task.status);
+      }
+    });
+    
+    // Update app state
+    appState.tasks = tasks;
+    
+  } catch (error) {
+    console.error('Error updating dashboard:', error);
+  }
+}
+
+async function loadTaskOverview() {
+  try {
+    const tasks = await db.tasks.toArray();
+    const taskOverviewList = document.getElementById('task-overview-list');
+    
+    if (!taskOverviewList) return;
+    
+    taskOverviewList.innerHTML = '';
+    
+    tasks.slice(0, 5).forEach(task => {
+      const taskItem = document.createElement('div');
+      taskItem.className = 'task-item';
+      taskItem.innerHTML = `
+        <div class="task-item-icon">${task.icon}</div>
+        <div class="task-item-info">
+          <div class="task-item-title">${task.name}</div>
+          <div class="task-item-subtitle">${task.responsible}</div>
         </div>
-    </div>
+        <div class="task-item-status ${getStatusClass(task.status)}">${task.status}</div>
+      `;
+      
+      taskItem.addEventListener('click', () => {
+        navigateToPage(`task-${task.id}`);
+      });
+      
+      taskOverviewList.appendChild(taskItem);
+    });
+  } catch (error) {
+    console.error('Error loading task overview:', error);
+  }
+}
+
+async function loadRecentActivity() {
+  try {
+    const activities = await db.activities.orderBy('created_at').reverse().limit(5).toArray();
+    const activityList = document.getElementById('activity-list');
     
-    <script src="app.js"></script>
-</body>
-</html>
+    if (!activityList) return;
+    
+    activityList.innerHTML = '';
+    
+    activities.forEach(activity => {
+      const activityItem = document.createElement('div');
+      activityItem.className = 'activity-item';
+      activityItem.innerHTML = `
+        <div class="activity-item-icon">📝</div>
+        <div class="activity-item-info">
+          <div class="activity-item-title">${activity.description}</div>
+          <div class="activity-item-subtitle">${formatDate(activity.created_at)}</div>
+        </div>
+      `;
+      
+      activityList.appendChild(activityItem);
+    });
+  } catch (error) {
+    console.error('Error loading recent activity:', error);
+  }
+}
+
+// Task functions
+async function loadTaskPage(taskId) {
+  try {
+    const task = await db.tasks.get(taskId);
+    if (!task) return;
+    
+    // Load task status
+    const statusSelect = document.getElementById(`task-status-${taskId}`);
+    if (statusSelect) {
+      statusSelect.value = task.status;
+    }
+    
+    // Load files
+    await loadTaskFiles(taskId);
+    
+    // Load comments
+    await loadTaskComments(taskId);
+    
+  } catch (error) {
+    console.error('Error loading task page:', error);
+  }
+}
+
+async function updateTaskStatus(taskId, newStatus) {
+  try {
+    const task = await db.tasks.get(taskId);
+    if (!task) return;
+    
+    const oldStatus = task.status;
+    
+    // Update task in database
+    await db.tasks.update(taskId, {
+      status: newStatus,
+      updated_at: new Date().toISOString()
+    });
+    
+    // Update app state
+    const taskIndex = appState.tasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1) {
+      appState.tasks[taskIndex].status = newStatus;
+    }
+    
+    // Add activity
+    await db.activities.add({
+      type: 'task_update',
+      description: `Tarea "${task.name}" cambió de ${oldStatus} a ${newStatus}`,
+      created_at: new Date().toISOString()
+    });
+    
+    // Update UI
+    await updateDashboard();
+    
+    showNotification(`✅ Estado actualizado: ${newStatus}`, 'success');
+    
+  } catch (error) {
+    console.error('Error updating task status:', error);
+    showNotification('❌ Error al actualizar estado', 'error');
+  }
+}
+
+async function handleFileUpload(taskId, files) {
+  try {
+    const fileArray = Array.from(files);
+    
+    for (const file of fileArray) {
+      // Read file content
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        await db.files.add({
+          task_id: taskId,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          content: e.target.result,
+          uploaded_at: new Date().toISOString()
+        });
+        
+        await loadTaskFiles(taskId);
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // Add activity
+    const task = await db.tasks.get(taskId);
+    await db.activities.add({
+      type: 'file_upload',
+      description: `${fileArray.length} archivo(s) subido(s) a "${task.name}"`,
+      created_at: new Date().toISOString()
+    });
+    
+    showNotification(`✅ ${fileArray.length} archivo(s) subido(s)`, 'success');
+    
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    showNotification('❌ Error al subir archivos', 'error');
+  }
+}
+
+async function loadTaskFiles(taskId) {
+  try {
+    const files = await db.files.where('task_id').equals(taskId).toArray();
+    const filesList = document.getElementById(`files-list-${taskId}`);
+    
+    if (!filesList) return;
+    
+    filesList.innerHTML = '';
+    
+    files.forEach(file => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-item';
+      fileItem.innerHTML = `
+        <div>📎 ${file.name}</div>
+        <div>${formatFileSize(file.size)} - ${formatDate(file.uploaded_at)}</div>
+      `;
+      
+      filesList.appendChild(fileItem);
+    });
+    
+  } catch (error) {
+    console.error('Error loading task files:', error);
+  }
+}
+
+async function addComment(taskId) {
+  try {
+    const commentTextarea = document.getElementById(`task-comments-${taskId}`);
+    if (!commentTextarea) return;
+    
+    const commentText = commentTextarea.value.trim();
+    if (!commentText) {
+      showNotification('⚠️ Por favor ingresa un comentario', 'info');
+      return;
+    }
+    
+    // Add comment to database
+    await db.comments.add({
+      task_id: taskId,
+      text: commentText,
+      author: 'Usuario',
+      created_at: new Date().toISOString()
+    });
+    
+    // Clear textarea
+    commentTextarea.value = '';
+    
+    // Reload comments
+    await loadTaskComments(taskId);
+    
+    // Add activity
+    const task = await db.tasks.get(taskId);
+    await db.activities.add({
+      type: 'comment',
+      description: `Nuevo comentario en "${task.name}"`,
+      created_at: new Date().toISOString()
+    });
+    
+    showNotification('✅ Comentario agregado', 'success');
+    
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    showNotification('❌ Error al agregar comentario', 'error');
+  }
+}
+
+async function loadTaskComments(taskId) {
+  try {
+    const comments = await db.comments.where('task_id').equals(taskId).orderBy('created_at').reverse().toArray();
+    const commentsList = document.getElementById(`comments-list-${taskId}`);
+    
+    if (!commentsList) return;
+    
+    commentsList.innerHTML = '';
+    
+    comments.forEach(comment => {
+      const commentItem = document.createElement('div');
+      commentItem.className = 'comment-item';
+      commentItem.innerHTML = `
+        <div><strong>${comment.author}</strong> - ${formatDate(comment.created_at)}</div>
+        <div>${comment.text}</div>
+      `;
+      
+      commentsList.appendChild(commentItem);
+    });
+    
+  } catch (error) {
+    console.error('Error loading task comments:', error);
+  }
+}
+
+// Data management functions
+async function loadData() {
+  try {
+    appState.tasks = await db.tasks.toArray();
+    await updateDashboard();
+    await loadTaskOverview();
+    await loadRecentActivity();
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+}
+
+async function exportData() {
+  try {
+    const data = {
+      tasks: await db.tasks.toArray(),
+      files: await db.files.toArray(),
+      comments: await db.comments.toArray(),
+      settings: await db.settings.toArray(),
+      activities: await db.activities.toArray(),
+      exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `marketing-workflow-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    
+    // Add activity
+    await db.activities.add({
+      type: 'export',
+      description: 'Datos exportados a JSON',
+      created_at: new Date().toISOString()
+    });
+    
+    showNotification('✅ Datos exportados exitosamente', 'success');
+    
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    showNotification('❌ Error al exportar datos', 'error');
+  }
+}
+
+// Settings functions
+function openSettings() {
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.classList.add('active');
+    
+    // Load current settings
+    const projectNameInput = document.getElementById('project-name');
+    const projectBudgetInput = document.getElementById('project-budget');
+    const targetCPAInput = document.getElementById('target-cpa');
+    const targetROASInput = document.getElementById('target-roas');
+    
+    if (projectNameInput) projectNameInput.value = appState.settings.projectName || '';
+    if (projectBudgetInput) projectBudgetInput.value = appState.settings.budget || 0;
+    if (targetCPAInput) targetCPAInput.value = appState.settings.targetCPA || 0;
+    if (targetROASInput) targetROASInput.value = appState.settings.targetROAS || 0;
+  }
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+async function saveSettingsHandler() {
+  try {
+    const projectNameInput = document.getElementById('project-name');
+    const projectBudgetInput = document.getElementById('project-budget');
+    const targetCPAInput = document.getElementById('target-cpa');
+    const targetROASInput = document.getElementById('target-roas');
+    
+    const newProjectName = projectNameInput ? projectNameInput.value : '';
+    const newBudget = projectBudgetInput ? parseFloat(projectBudgetInput.value) : 0;
+    const newTargetCPA = targetCPAInput ? parseFloat(targetCPAInput.value) : 0;
+    const newTargetROAS = targetROASInput ? parseFloat(targetROASInput.value) : 0;
+    
+    // Update settings in database
+    await db.settings.where('key').equals('projectName').modify({
+      value: newProjectName
+    });
+    
+    await db.settings.where('key').equals('budget').modify({
+      value: newBudget
+    });
+    
+    await db.settings.where('key').equals('targetCPA').modify({
+      value: newTargetCPA
+    });
+    
+    await db.settings.where('key').equals('targetROAS').modify({
+      value: newTargetROAS
+    });
+    
+    // Update app state
+    appState.settings.projectName = newProjectName;
+    appState.settings.budget = newBudget;
+    appState.settings.targetCPA = newTargetCPA;
+    appState.settings.targetROAS = newTargetROAS;
+    
+    // Add activity
+    await db.activities.add({
+      type: 'settings',
+      description: 'Configuración actualizada',
+      created_at: new Date().toISOString()
+    });
+    
+    closeSettingsModal();
+    showNotification('✅ Configuración guardada', 'success');
+    
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    showNotification('❌ Error al guardar configuración', 'error');
+  }
+}
+
+// Utility functions
+function updateElement(id, value) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function getStatusEmoji(status) {
+  const statusMap = {
+    'Pendiente': '⏳',
+    'En Proceso': '🔄',
+    'Completada': '✅'
+  };
+  return statusMap[status] || '⏳';
+}
+
+function getStatusClass(status) {
+  const statusMap = {
+    'Pendiente': 'pending',
+    'En Proceso': 'in-progress',
+    'Completada': 'completed'
+  };
+  return statusMap[status] || 'pending';
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-text">${message}</div>
+      <button class="notification-close">×</button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.remove();
+    }
+  }, 5000);
+  
+  // Manual close
+  const closeBtn = notification.querySelector('.notification-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    });
+  }
+}
+
+// Make functions globally available
+window.navigateToPage = navigateToPage;
+window.addComment = addComment;
+window.updateTaskStatus = updateTaskStatus;
+window.handleFileUpload = handleFileUpload;
+window.openSettings = openSettings;
+window.closeSettingsModal = closeSettingsModal;
+window.saveSettingsHandler = saveSettingsHandler;
+window.exportData = exportData;
